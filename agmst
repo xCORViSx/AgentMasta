@@ -525,9 +525,17 @@ replace_instructions_in_current() {
 	# We check if we're in a directory (current workspace)
 	local current_dir="$(pwd)"
 	
-	# We show appropriate message based on whether profile was created
+	# If profile was just created, ask if user wants to also replace instructions
 	if [ "$profile_was_created" = "true" ]; then
-		echo "📋 Created new profile: ${profile_display}"
+		echo "✅ Created new profile: ${profile_display}"
+		echo ""
+		read -p "Would you also like to replace instructions in current workspace? (y/N) " -n 1 -r
+		echo
+		if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+			echo "✅ Profile created successfully"
+			exit 0
+		fi
+		# Continue to replacement below if yes
 	fi
 	
 	# We ask for confirmation before replacing

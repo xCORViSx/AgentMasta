@@ -551,9 +551,16 @@ function Replace-InstructionsInCurrent {
     # We extract just the profile directory name for display
     $profileDisplay = Split-Path -Leaf $profilePath
     
-    # We show appropriate message based on whether profile was created
+    # If profile was just created, ask if user wants to also replace instructions
     if ($profileResult.WasCreated) {
-        Write-Host "📋 Created new profile: $profileDisplay" -ForegroundColor Cyan
+        Write-Host "✅ Created new profile: $profileDisplay" -ForegroundColor Green
+        Write-Host ""
+        $response = Read-Host "Would you also like to replace instructions in current workspace? (y/N)"
+        if ($response -ne 'y' -and $response -ne 'Y') {
+            Write-Host "✅ Profile created successfully" -ForegroundColor Green
+            exit 0
+        }
+        # Continue to replacement below if yes
     }
     
     # We check if we're in a directory (current workspace)
