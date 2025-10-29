@@ -64,6 +64,7 @@ USAGE:
     agmst !-profilename                     Replace instructions in current workspace with profile
     agmst del /workspace-name               Delete a workspace
     agmst del !-profilename                 Delete an instructions profile
+    agmst proftypes                         Show instruction types for all profiles
     agmst wsdir                             Show current workspace directory
     agmst wsdir <path>                      Set workspace directory
     agmst install                           Install AgentMasta
@@ -892,6 +893,65 @@ function Delete-Profile {
     Write-Host "✅ Profile '!-$ProfileName' deleted successfully" -ForegroundColor Green
 }
 
+# This function displays all profiles with their instruction types in ls-like format
+function Show-ProfileTypes {
+    Write-Host "📋 Instructions Profiles:" -ForegroundColor Cyan
+    Write-Host ""
+    
+    # We scan for profile directories (start with !-)
+    $profiles = Get-ChildItem -Path $AGENTMASTA_ROOT -Directory -Filter "!-*" -ErrorAction SilentlyContinue
+    
+    # We check if any profiles exist
+    if ($profiles.Count -eq 0) {
+        Write-Host "No profiles found."
+        Write-Host ""
+        Write-Host "💡 Create a profile with: agmst !A-profilename (AGENTS.md only)" -ForegroundColor Cyan
+        Write-Host "                          agmst !c-profilename (copilot-instructions.md only)" -ForegroundColor Cyan
+        Write-Host "                          agmst !Ac-profilename (both files)" -ForegroundColor Cyan
+        return
+    }
+    
+    # We find the longest profile name for alignment
+    $maxLength = 0
+    foreach ($prof in $profiles) {
+        $nameLength = $prof.Name.Length
+        if ($nameLength -gt $maxLength) {
+            $maxLength = $nameLength
+        }
+    }
+    
+    # We display each profile with its instruction types
+    foreach ($prof in $profiles) {
+        $profileName = $prof.Name
+        $typeIndicator = ""
+        
+        # We check which instruction files exist
+        $hasAgents = Test-Path (Join-Path $prof.FullName "AGENTS.md")
+        $hasCopilot = Test-Path (Join-Path $prof.FullName "copilot-instructions.md")
+        
+        # We determine the type indicator
+        if ($hasAgents -and $hasCopilot) {
+            $typeIndicator = "Ac"
+        } elseif ($hasAgents) {
+            $typeIndicator = "A"
+        } elseif ($hasCopilot) {
+            $typeIndicator = "c"
+        } else {
+            $typeIndicator = "--"  # No instruction files (shouldn't happen normally)
+        }
+        
+        # We calculate padding for alignment
+        $padding = $maxLength - $profileName.Length + 4
+        $spaces = " " * $padding
+        
+        # We display the profile with aligned type indicator
+        Write-Host "$profileName$spaces$typeIndicator"
+    }
+    
+    Write-Host ""
+    Write-Host "Legend: A = AGENTS.md only, c = copilot-instructions.md only, Ac = both files" -ForegroundColor DarkGray
+}
+
 # This is the main entry point of the script
 # We parse the command-line arguments and route to the appropriate function
 function Main {
@@ -995,6 +1055,9 @@ function Main {
             } else {
                 Show-WorkspaceDir
             }
+        }
+        "proftypes" {
+            Show-ProfileTypes
         }
         default {
             # We check if the command starts with profile prefixes (profile for current workspace)

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Profile Types Display**: Added `agmst proftypes` command
+  - Shows ls-like display of all profiles with their instruction types
+  - Clean aligned output showing which files each profile contains (A, c, or Ac)
+  - Helpful legend explaining type indicators
+  - Available in both bash and PowerShell versions
+
 ### Changed
 
 - **Profile Prefix Nomenclature**: Updated profile prefixes to match workspace type identifiers

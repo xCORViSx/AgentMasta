@@ -80,6 +80,7 @@ USAGE:
     agmst !-profilename                     Replace instructions in current workspace with profile
     agmst del /workspace-name               Delete a workspace
     agmst del !-profilename                 Delete an instructions profile
+    agmst proftypes                         Show instruction types for all profiles
     agmst wsdir                             Show current workspace directory
     agmst wsdir <path>                      Set workspace directory
     agmst install                           Install AgentMasta
@@ -866,6 +867,78 @@ ${DIM}To change workspace directory, run:${RESET} agmst wsdir <path>
 EOF
 }
 
+# This function displays all profiles with their instruction types in ls-like format
+show_profile_types() {
+	echo "📋 Instructions Profiles:"
+	echo ""
+	
+	# We check if there are any profiles
+	local profile_count=0
+	local profiles=()
+	
+	# We scan for profile directories (start with !-)
+	for profile_dir in "${AGENTMASTA_ROOT}"/!-*; do
+		if [ -d "$profile_dir" ]; then
+			profile_count=$((profile_count + 1))
+			profiles+=("$profile_dir")
+		fi
+	done
+	
+	# We check if any profiles exist
+	if [ $profile_count -eq 0 ]; then
+		echo "No profiles found."
+		echo ""
+		echo "💡 Create a profile with: agmst !A-profilename (AGENTS.md only)"
+		echo "                          agmst !c-profilename (copilot-instructions.md only)"
+		echo "                          agmst !Ac-profilename (both files)"
+		return
+	fi
+	
+	# We find the longest profile name for alignment
+	local max_length=0
+	for profile_dir in "${profiles[@]}"; do
+		local profile_name=$(basename "$profile_dir")
+		local name_length=${#profile_name}
+		if [ $name_length -gt $max_length ]; then
+			max_length=$name_length
+		fi
+	done
+	
+	# We display each profile with its instruction types
+	for profile_dir in "${profiles[@]}"; do
+		local profile_name=$(basename "$profile_dir")
+		local type_indicator=""
+		
+		# We check which instruction files exist
+		local has_agents=false
+		local has_copilot=false
+		
+		[ -f "${profile_dir}/AGENTS.md" ] && has_agents=true
+		[ -f "${profile_dir}/copilot-instructions.md" ] && has_copilot=true
+		
+		# We determine the type indicator
+		if $has_agents && $has_copilot; then
+			type_indicator="Ac"
+		elif $has_agents; then
+			type_indicator="A"
+		elif $has_copilot; then
+			type_indicator="c"
+		else
+			type_indicator="--"  # No instruction files (shouldn't happen normally)
+		fi
+		
+		# We calculate padding for alignment
+		local padding=$((max_length - ${#profile_name} + 4))
+		local spaces=$(printf '%*s' "$padding" '')
+		
+		# We display the profile with aligned type indicator
+		echo "${profile_name}${spaces}${type_indicator}"
+	done
+	
+	echo ""
+	echo "Legend: A = AGENTS.md only, c = copilot-instructions.md only, Ac = both files"
+}
+
 # This is the main entry point of the script
 # We parse the command-line arguments and route to the appropriate function
 main() {
@@ -925,6 +998,10 @@ main() {
 				# Set new workspace directory
 				set_workspace_dir "$second_arg"
 			fi
+			;;
+		proftypes)
+			# We display all profiles with their instruction types
+			show_profile_types
 			;;
 		!Ac-*|!cA-*|!A-*|!c-*|!-*)
 			# We treat arguments starting with profile prefixes as profile for current workspace

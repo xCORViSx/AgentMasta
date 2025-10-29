@@ -260,6 +260,25 @@ agmst wsdir
 agmst wsdir /new/path
 ```
 
+### View Profile Types
+
+```bash
+# Show all profiles with their instruction types
+agmst proftypes
+```
+
+This displays an ls-like output showing which instruction file types each profile contains:
+
+```text
+📋 Instructions Profiles:
+
+!-test                A
+!-test2              Ac
+!-gpt5                c
+
+Legend: A = AGENTS.md only, c = copilot-instructions.md only, Ac = both files
+```
+
 ### View Help
 
 ```bash
