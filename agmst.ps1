@@ -941,7 +941,7 @@ function Show-ProfileTypes {
         }
         
         # We calculate padding for alignment
-        $padding = $maxLength - $profileName.Length + 8
+        $padding = $maxLength - $profileName.Length + 16
         $spaces = " " * $padding
         
         # We display the profile with aligned type indicator
