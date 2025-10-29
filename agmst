@@ -928,7 +928,7 @@ show_profile_types() {
 		fi
 		
 		# We calculate padding for alignment
-		local padding=$((max_length - ${#profile_name} + 4))
+		local padding=$((max_length - ${#profile_name} + 8))
 		local spaces=$(printf '%*s' "$padding" '')
 		
 		# We display the profile with aligned type indicator
