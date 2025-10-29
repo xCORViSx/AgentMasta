@@ -64,13 +64,13 @@ This document outlines the development phases and current status of the AgentMas
 - ✅ Instructions profile support for different AI agents
 - ✅ Profile directories always stored as !-name format
 - ✅ Profile type prefixes for targeted file creation:
-  - !@- (AGENTS.md only)
-  - !C- (copilot-instructions.md only)
-  - !@C- or !C@- (both files)
+  - !A- (AGENTS.md only)
+  - !c- (copilot-instructions.md only)
+  - !Ac- or !cA- (both files)
   - !- (user prompt for file type)
 - ✅ Auto-creation of profiles on first use
 - ✅ User prompt for !- prefix profiles (choose which file(s) to create)
-- ✅ Profile copying with = syntax (!@-new=!-existing)
+- ✅ Profile copying with = syntax (!A-new=!-existing)
 - ✅ Smart content copying: cross-type when single source, match-type when both exist
 - ✅ Multiple instructions files per profile (AGENTS.md and/or copilot-instructions.md)
 - ✅ Profile validation and error handling

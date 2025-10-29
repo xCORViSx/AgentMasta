@@ -238,11 +238,15 @@ function Uninstall-Self {
 }
 
 # This function validates and creates profile directories if needed
-# Profiles can start with !@- (AGENTS.md), !C- (copilot-instructions.md), !@C-/!C@- (both), or !- (prompt)
+# Profiles can start with !A- (AGENTS.md), !c- (copilot-instructions.md), !Ac-/!cA- (both), or !- (prompt/use existing)
+# Identifiers (A, c, Ac, cA) are ONLY for creating new profiles
 # All profile directories are stored as !-name regardless of command prefix
-# Supports copying from another profile with = syntax: !@-new=!-existing
+# Supports copying from another profile with = syntax: !A-new=!-existing
+# Returns: @{Path = profile_path; Created = $true/$false}
 function Validate-Profile {
-    param([string]$Profile)
+    param(
+        [string]$Profile
+    )
     
     $profileName = ""
     $profileType = ""
@@ -251,26 +255,31 @@ function Validate-Profile {
     $isCreationCommand = $false
     
     # We check if the profile uses = syntax to copy from another profile
-    if ($Profile -match '^(![@C]+-[^=]+)=(!-[^=]+)$') {
+    if ($Profile -match '^(![Ac]+-[^=]+)=(!-[^=]+)$') {
         $Profile = $matches[1]
         $sourceProfile = $matches[2]
     }
     
     # We determine the profile type from the prefix and whether it's a creation command
-    if ($Profile -match '^!@C-' -or $Profile -match '^!C@-') {
+    if ($Profile -match '^!Ac-') {
         $profileType = "both"
         $isCreationCommand = $true
-        $profileName = $Profile -replace '^!@C-', '' -replace '^!C@-', ''
+        $profileName = $Profile -replace '^!Ac-', ''
     }
-    elseif ($Profile -match '^!@-') {
+    elseif ($Profile -match '^!cA-') {
+        $profileType = "both"
+        $isCreationCommand = $true
+        $profileName = $Profile -replace '^!cA-', ''
+    }
+    elseif ($Profile -match '^!A-') {
         $profileType = "agents"
         $isCreationCommand = $true
-        $profileName = $Profile -replace '^!@-', ''
+        $profileName = $Profile -replace '^!A-', ''
     }
-    elseif ($Profile -match '^!C-') {
+    elseif ($Profile -match '^!c-') {
         $profileType = "copilot"
         $isCreationCommand = $true
-        $profileName = $Profile -replace '^!C-', ''
+        $profileName = $Profile -replace '^!c-', ''
     }
     elseif ($Profile -match '^!-') {
         $profileType = "prompt"
@@ -278,8 +287,8 @@ function Validate-Profile {
         $profileName = $Profile -replace '^!-', ''
     }
     else {
-        Write-Host "❌ Error: Profile must start with !@- (AGENTS.md), !C- (copilot), !@C-/!C@- (both), or !- (prompt)" -ForegroundColor Red
-        Write-Host "💡 Examples: !@-snt4.5, !C-gpt5, !@C-full, !-custom" -ForegroundColor Cyan
+        Write-Host "❌ Error: Profile must start with !A- (AGENTS.md), !c- (copilot), !Ac-/!cA- (both), or !- (prompt)" -ForegroundColor Red
+        Write-Host "💡 Examples: !A-snt4.5, !c-gpt5, !Ac-full, !-custom" -ForegroundColor Yellow
         return $null
     }
     
@@ -448,11 +457,11 @@ function Validate-Profile {
             
             Write-Host "" -ForegroundColor White
             Write-Host "💡 Tip: Explicitly define instructions file(s) desired in new instructions profile:" -ForegroundColor Cyan
-            Write-Host "   !@-profilename for AGENTS.md only" -ForegroundColor White
-            Write-Host "   !C-profilename for copilot-instructions.md only" -ForegroundColor White
-            Write-Host "   !@C-profilename or !C@-profilename for both files" -ForegroundColor White
+            Write-Host "   !A-profilename for AGENTS.md only" -ForegroundColor White
+            Write-Host "   !c-profilename for copilot-instructions.md only" -ForegroundColor White
+            Write-Host "   !Ac-profilename or !cA-profilename for both files" -ForegroundColor White
             Write-Host "   !-profilename for user prompt (if profile non-existent)" -ForegroundColor White
-            Write-Host "💡 Append '=' to copy an existing profile: !@-new=!-existing" -ForegroundColor Cyan
+            Write-Host "💡 Append '=' to copy an existing profile: !A-new=!-existing" -ForegroundColor Cyan
             Write-Host "" -ForegroundColor White
         }
     }
