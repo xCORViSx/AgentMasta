@@ -7,21 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Help Text Improvements**: Enhanced clarity and consistency across help documentation
+  - Removed "a new" from workspace creation lines for conciseness (changed "Create a new workspace" to "Create a workspace")
+  - Renamed `proftypes` command to `!types` for consistency with profile command patterns
+  - Merged redundant command lines in USAGE section for better readability:
+    - Combined `!` and `!A (OR !c)` into single line with all options
+    - Combined `A/` and `c/` workspace creation options into single line
+  - Capitalized "OR" and put in parentheses to distinguish from command syntax
+  - Changed "Creation commands" header to clarify these can be standalone or appended to workspace creation
+  - Added note explaining that standalone usage prompts whether to also replace current workspace instructions
+  - Updated all profile command examples with more specific descriptions
+  - Clarified wording: "default instructions" → "all default instructions files"
+  - Added "just" before individual file options to emphasize single-file nature
+  - Changed example descriptions to accurately reflect whether commands create profiles or replace workspace instructions
+  - Updated "both files" to "both types" in EXAMPLES section for consistency
+  - All changes applied consistently to both bash (`agmst`) and PowerShell (`agmst.ps1`) versions
+
 ## [1.4.0] - 2025-10-29
 
 ### Added
 
-- **Root Instructions Replacement Commands**: Added `!`, `!A`, and `!c` commands for replacing workspace instructions with files from [AgentMasta] root
-  - `agmst !` replaces with all available root instructions files (both if present)
-  - `agmst !A` replaces with AGENTS.md only from root
-  - `agmst !c` replaces with copilot-instructions.md only from root
+- **Default Instructions Replacement Commands**: Added `!`, `!A`, and `!c` commands for replacing workspace instructions with default files from [AgentMasta]
+  - `agmst !` replaces with all available default instructions (both if present)
+  - `agmst !A` replaces with AGENTS.md only from defaults
+  - `agmst !c` replaces with copilot-instructions.md only from defaults
   - Confirmation prompt before replacing instructions
-  - File type validation ensures requested files exist in root
+  - File type validation ensures requested files exist
   - Helpful error messages when requested files are missing
   - Useful for quickly reverting to default instructions setup
   - Available in both bash and PowerShell versions
-- Help documentation updated with new root replacement commands
-- README examples showing root replacement usage in multiple sections
+- Help documentation updated with new default instructions replacement commands
+- README examples showing default instructions replacement usage in multiple sections
 
 ## [1.3.0] - 2025-10-29
 

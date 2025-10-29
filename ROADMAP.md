@@ -185,20 +185,20 @@ This document outlines the development phases and current status of the AgentMas
 
 ---
 
-## Phase 11: Root Instructions Replacement ✅ COMPLETE
+## Phase 11: Default Instructions Replacement ✅ COMPLETE
 
 **Status:** Released v1.4.0 (October 29, 2025)
 
-### Root Replacement Features
+### Default Replacement Features
 
-- ✅ `agmst !` command to replace instructions with root files
-- ✅ `agmst !A` command to replace with AGENTS.md only from root
-- ✅ `agmst !c` command to replace with copilot-instructions.md only from root
+- ✅ `agmst !` command to replace instructions with default files
+- ✅ `agmst !A` command to replace with AGENTS.md only from defaults
+- ✅ `agmst !c` command to replace with copilot-instructions.md only from defaults
 - ✅ Confirmation prompt before replacing instructions
 - ✅ File type validation ensuring requested files exist
 - ✅ Cross-platform implementation (bash and PowerShell)
 - ✅ Help documentation updated with new commands
-- ✅ README examples showing root replacement usage
+- ✅ README examples showing default instructions replacement usage
 
 ---
 
@@ -219,6 +219,21 @@ This document outlines the development phases and current status of the AgentMas
 
 ---
 
+## Phase 13: Documentation Polish ✅ COMPLETE
+
+**Status:** Released (post-v1.4.0)
+
+### Documentation Improvements
+
+- ✅ Help text consistency improvements across all commands
+- ✅ Renamed `proftypes` to `!types` for pattern consistency
+- ✅ Merged redundant lines in USAGE for better readability
+- ✅ Enhanced creation commands documentation with usage context
+- ✅ Improved example descriptions for accuracy and clarity
+- ✅ Cross-platform consistency between bash and PowerShell versions
+
+---
+
 ## Current Status Summary
 
 **Project Status:** ✅ Ready for Release
@@ -231,21 +246,21 @@ The AgentMasta CLI tool is feature-complete with comprehensive workspace and pro
 - ✅ / prefix syntax for workspace names
 - ✅ Type identifiers (A/ and c/) for selective root instructions
 - ✅ Root replacement commands (!, !A, !c) for reverting to default instructions
-- ✅ Profile types display command (proftypes)
+- ✅ Profile types display command (!types)
 - ✅ wsdir command for workspace directory management
 - ✅ Deletion commands for workspaces and profiles
 - ✅ Enhanced UX with warnings and confirmation prompts
-- ✅ Complete documentation
+- ✅ Complete documentation with consistent help text
 - ✅ Installation scripts for all platforms
 - ✅ VS Code integration
 
-**Next Action:** Consider tagging a new release version v1.4.0 with the root replacement feature.
+**Next Action:** Consider tagging a new release version with the recent documentation improvements and command rename.
 
 ---
 
 ## Version History
 
-- **v1.4.0** (October 29, 2025) - Added root instructions replacement commands (!, !A, !c)
+- **v1.4.0** (October 29, 2025) - Added default instructions replacement commands (!, !A, !c)
 - **v1.3.0** (October 29, 2025) - Added proftypes command and improved profile creation UX
 - **v1.2.0** (October 28, 2025) - Added workspace type identifiers (A/ and c/)
 - **v1.1.0** (October 28, 2025) - Added deletion commands and enhanced UX

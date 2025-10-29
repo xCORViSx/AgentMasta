@@ -119,3 +119,51 @@ igger you to convert citation from dirty to pure upon md's next read. For the ne
 - ALWAYS use latest stable version (x.x) for dependencies (run `cargo search` to confirm)
 - Run `cargo check` or other relevant commands after edits and keep Clippy clean when practical.
 - Embrace `Result`, `Option`, pattern matching, and iterators in idiomatic ways.
+
+## GitHub Release Process
+
+**To publish a new version to GitHub:**
+
+1. Stage and commit changes:
+
+   ```bash
+   git add .
+   git commit -m "feat: description of changes"
+   ```
+
+2. Push to GitHub:
+
+   ```bash
+   git push
+   ```
+
+3. Create and push Git tag:
+
+   ```bash
+   git tag -a vX.Y.Z -m "Release vX.Y.Z - Short description"
+   git push origin vX.Y.Z
+   ```
+
+4. Create GitHub release using CLI:
+
+   ```bash
+   # Create temporary notes file to avoid shell escaping issues
+   cat > release-notes.md << 'EOF'
+   ## What's New
+   [Description of changes]
+   
+   ## Features
+   [List of features]
+   
+   ## Full Changelog
+   See [CHANGELOG.md](link)
+   EOF
+   
+   # Create release
+   gh release create vX.Y.Z --title 'vX.Y.Z - Title' --notes-file release-notes.md
+   
+   # Clean up
+   rm release-notes.md
+   ```
+
+**Note:** Use single quotes in `gh release create` title to avoid shell interpretation issues. Use `--notes-file` instead of `--notes` to avoid escaping problems with special characters like `!` in zsh.

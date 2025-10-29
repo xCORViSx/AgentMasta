@@ -57,17 +57,13 @@ function Show-Help {
 AgentMasta - Workspace Management Tool for Vibecoders [v$VERSION]
 
 USAGE:
-    agmst /workspace-name                   Create a new workspace with root instructions
-    agmst A/workspace-name                  Create workspace with AGENTS.md only (from root)
-    agmst c/workspace-name                  Create workspace with copilot-instructions.md only (from root)
-    agmst /workspace-name !-profilename     Create a new workspace with instructions profile
-    agmst !                                 Replace instructions in current workspace with root files
-    agmst !A                                Replace instructions with AGENTS.md from root
-    agmst !c                                Replace instructions with copilot-instructions.md from root
-    agmst !-profilename                     Replace instructions in current workspace with profile
+    agmst /workspace-name (OR A/ OR c/)     Create a workspace with all default instructions files (OR just AGENTS.md OR just copilot-instructions.md)
+    agmst /workspace-name !-profilename     Create a workspace with instructions profile
+    agmst ! (OR !A OR !c)                   Replace instructions in current workspace with all default files (OR just AGENTS.md OR just copilot-instructions.md)
+    agmst !-profilename                     Replace instructions in current workspace with instructions profile
+    agmst !types                            Show instruction types for all profiles
     agmst del /workspace-name               Delete a workspace
     agmst del !-profilename                 Delete an instructions profile
-    agmst proftypes                         Show instruction types for all profiles
     agmst wsdir                             Show current workspace directory
     agmst wsdir <path>                      Set workspace directory
     agmst install                           Install AgentMasta
@@ -93,11 +89,12 @@ INSTRUCTIONS PROFILES:
     Profiles let you maintain different instructions sets for different AI agents.
     All profile directories are stored as !-name format.
     
-    Profile prefixes (for commands):
-        !A-name                Create instructions profile with AGENTS.md only
-        !c-name                Create instructions profile with copilot-instructions.md only
-        !Ac-name OR !cA-name   Create instructions profile with both files
-        !-name                 Use instructions profile. If non-existent, create it and prompt user for instructions type(s)
+    Creation commands (can be used standalone or appended to workspace creation)
+	(If used standalone, option prompt will ask if user also wants current workspace instructions to inherit profile):
+        !A-profilename         Create instructions profile with AGENTS.md only
+        !c-profilename         Create instructions profile with copilot-instructions.md only
+        !Ac-name OR !cA-name   Create instructions profile with both AGENTS.md and copilot-instructions.md files
+        !-profilename          ONLY asks to create if instructions profile given is NON-EXISTENT. Prompts user for instructions type(s)
     
     Creating profiles:
         - Profiles auto-create if they don't exist
@@ -107,35 +104,35 @@ INSTRUCTIONS PROFILES:
         - Empty file created if no source available
     
     Examples:
-        !A-snt4.5                          Create/use AGENTS.md profile
-        !c-gpt5                            Create/use copilot profile
-        !Ac-full                           Create/use both files profile
-        !-custom                           Prompt for file type
-        !A-new=!-existing                  Copy from existing profile
+        agmst !A-snt4.5                          Creates AGENTS.md profile (w/ option prompt)
+        agmst /testws !c-gpt5                    Creates a workspace that inherits a new copilot-instructions.md profile
+        agmst !Ac-full                           Creates instructions profile with both AGENTS.md and copilot-instructions.md files
+        agmst !-custom                           Replaces current workspace instructions with profile OR asks to create profile if non-existant (w/ option prompt)
+        agmst !A-new=!-existing                  Creates new profile that copies contents of existing profile (w/ option prompt)
 
 CONFIGURATION:
     Workspace directory is stored in the agmst.ps1 script itself.
     Default workspace directory: ~/Documents/DEVshi
     Use 'agmst wsdir <path>' to change where workspaces are created.
     
-    Default instructions are read from [AgentMasta] root directory.
+    Default instructions are read from root of [AgentMasta] repo.
 
 EXAMPLES:
-    agmst /my-project                  # Creates workspace with root instructions (both files if both exist)
-    agmst A/my-project                 # Creates workspace with AGENTS.md only (from root)
-    agmst c/my-project                 # Creates workspace with copilot-instructions.md only (from root)
-    agmst /my-project !A-snt4.5        # Creates workspace with AGENTS.md profile
-    agmst /my-project !c-gpt5          # Creates workspace with copilot profile
-    agmst !                            # Replace instructions with root files (both if available)
-    agmst !A                           # Replace instructions with AGENTS.md from root
-    agmst !c                           # Replace instructions with copilot-instructions.md from root
-    agmst !A-new=!-existing            # Replace instructions, copying from another profile
+    agmst /my-project                  # Creates workspace with default instructions (both types if both exist)
+    agmst A/my-project                 # Creates workspace with default AGENTS.md
+    agmst c/my-project                 # Creates workspace with default copilot-instructions.md
+    agmst /my-project !A-snt4.5        # Creates workspace with new AGENTS.md profile
+    agmst /my-project !c-gpt5          # Creates workspace with new copilot profile
+    agmst !                            # Replace instructions with default files (both types if available)
+    agmst !A                           # Replace instructions with default AGENTS.md
+    agmst !c                           # Replace instructions with default copilot-instructions.md
+    agmst !A-new=!-existing            # Create new instructions profile, copying from existing profile (w/ option prompt)
     agmst /!important-ws               # Creates workspace named "!important-ws" (! allowed with / prefix)
-    agmst !A-gpt5                      # Replace instructions in current workspace with profile
+    agmst !A-gpt5                      # Creates AGENTS.md profile (w/ option prompt)
     agmst del /my-project              # Delete a workspace
     agmst del !-snt4.5                 # Delete an instructions profile
     agmst wsdir                        # Show workspace directory
-    agmst wsdir C:\Projects            # Set workspace directory
+    agmst wsdir ~/Projects             # Set workspace directory
 
 GITHUB:
     https://github.com/xCORViSx/AgentMasta
@@ -574,7 +571,7 @@ function Replace-InstructionsFromRoot {
     
     # We ask for confirmation before replacing
     Write-Host "📋 Current directory: $currentDir" -ForegroundColor Cyan
-    Write-Host "🔄 This will replace instruction symlinks with files from [AgentMasta] root" -ForegroundColor Yellow
+    Write-Host "🔄 This will replace instruction symlinks with default instructions from [AgentMasta]" -ForegroundColor Yellow
     if ($FileType -eq "agents") {
         Write-Host "📄 File type: AGENTS.md only" -ForegroundColor Cyan
     } elseif ($FileType -eq "copilot") {
@@ -597,10 +594,10 @@ function Replace-InstructionsFromRoot {
         Remove-Item (Join-Path $currentDir ".github\copilot-instructions.md") -ErrorAction SilentlyContinue -Force
     }
     
-    # We create new symlinks from the root
+    # We create new symlinks from the default instructions
     Create-InstructionSymlinks -WorkspacePath $currentDir -InstructionsSourceDir $AGENTMASTA_ROOT -FileType $FileType
     
-    Write-Host "✅ Instructions replaced with files from [AgentMasta] root" -ForegroundColor Green
+    Write-Host "✅ Instructions replaced with default instructions from [AgentMasta]" -ForegroundColor Green
 }
 
 # This function replaces instruction symlinks in the current workspace with a profile
@@ -1130,7 +1127,7 @@ function Main {
                 Show-WorkspaceDir
             }
         }
-        "proftypes" {
+        "!types" {
             Show-ProfileTypes
         }
         "!Ac" {

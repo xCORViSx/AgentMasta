@@ -235,20 +235,20 @@ agmst !-gpt5
 
 Replaces instructions files in your current workspace with those from the `!-gpt5` profile.
 
-#### Using Root Instructions Files
+#### Using Default Instructions
 
 ```bash
-# Replace with all available root instructions files
+# Replace with all available default instructions
 agmst !
 
-# Replace with AGENTS.md only from root
+# Replace with AGENTS.md only from defaults
 agmst !A
 
-# Replace with copilot-instructions.md only from root
+# Replace with copilot-instructions.md only from defaults
 agmst !c
 ```
 
-Replaces instructions files in your current workspace with those from the `[AgentMasta]` root directory (not a profile). This is useful for quickly reverting to your default instructions setup.
+Replaces instructions files in your current workspace with the default instructions from the `[AgentMasta]` directory. This is useful for quickly reverting to your default instructions setup.
 
 ### Delete Workspaces and Profiles
 
@@ -281,7 +281,7 @@ agmst wsdir /new/path
 
 ```bash
 # Show all profiles with their instruction types
-agmst proftypes
+agmst !types
 ```
 
 This displays an ls-like output showing which instruction file types each profile contains:
@@ -349,13 +349,13 @@ agmst /agent-workspace !-new-agent
 # Replace instructions in current workspace with GPT-5 profile
 agmst !-gpt5
 
-# Replace instructions with root files (both if available)
+# Replace instructions with default files (both if available)
 agmst !
 
-# Replace instructions with AGENTS.md only from root
+# Replace instructions with AGENTS.md only from defaults
 agmst !A
 
-# Replace instructions with copilot-instructions.md only from root
+# Replace instructions with copilot-instructions.md only from defaults
 agmst !c
 
 # Delete a workspace
