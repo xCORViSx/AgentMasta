@@ -146,4 +146,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .gitignore configuration
 - GitHub-ready repository structure
 
+[1.2.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.2.0
+[1.1.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.1.0
+[1.0.1]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.0.1
 [1.0.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.0.0
