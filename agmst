@@ -1,0 +1,831 @@
+#!/usr/bin/env bash
+
+# AgentMasta - Workspace Management Tool for Vibecoders
+# This script creates new workspaces with automatic AGENTS.md or copilot-instructions.md setup
+# and provides workspace management features for AI-assisted development
+# and opens them in VS Code
+
+# We define the version number for this CLI tool
+VERSION="1.2.0"
+
+# We determine where this script is installed
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# We determine where the AgentMasta repository is located
+# This line will be automatically updated during installation to point to the repo
+AGENTMASTA_ROOT="__AGENTMASTA_ROOT_PLACEHOLDER__"
+
+# If we're running from the repository (not installed), use SCRIPT_DIR as the root
+if [ "$AGENTMASTA_ROOT" = "__AGENTMASTA_ROOT_PLACEHOLDER__" ]; then
+	AGENTMASTA_ROOT="$SCRIPT_DIR"
+fi
+
+# WORKSPACE_DIR: This is where new workspaces will be created
+# You can change this with: agmst wsdir <new-path>
+WORKSPACE_DIR="${HOME}/Documents/DEVshi"
+
+# This function shows the current workspace directory
+show_workspace_dir() {
+	echo "📁 Current workspace directory: ${WORKSPACE_DIR}"
+}
+
+# This function updates the workspace directory in this script
+set_workspace_dir() {
+	local new_dir="$1"
+	
+	# We expand the tilde if present
+	new_dir="${new_dir/#\~/$HOME}"
+	
+	# We check if the directory exists or can be created
+	if [ ! -d "$new_dir" ]; then
+		read -p "Directory doesn't exist. Create it? (y/N) " -n 1 -r
+		echo
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			mkdir -p "$new_dir" || {
+				echo "❌ Failed to create directory"
+				exit 1
+			}
+		else
+			echo "❌ Cancelled"
+			exit 1
+		fi
+	fi
+	
+	# We get the absolute path
+	new_dir="$(cd "$new_dir" && pwd)"
+	
+	# We update the WORKSPACE_DIR line in this script
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# macOS sed
+		sed -i '' "s|^WORKSPACE_DIR=.*|WORKSPACE_DIR=\"$new_dir\"|" "$0"
+	else
+		# Linux sed
+		sed -i "s|^WORKSPACE_DIR=.*|WORKSPACE_DIR=\"$new_dir\"|" "$0"
+	fi
+	
+	echo "✅ Workspace directory updated to: ${new_dir}"
+	echo "💡 All new workspaces will be created here"
+}
+
+# This function displays usage information to help users understand the commands
+show_help() {
+	cat << EOF
+AgentMasta - Workspace Management Tool for Vibecoders [v${VERSION}]
+
+USAGE:
+    agmst /workspace-name                   Create a new workspace with root instructions
+    agmst @/workspace-name                  Create workspace with AGENTS.md only (from root)
+    agmst C/workspace-name                  Create workspace with copilot-instructions.md only (from root)
+    agmst /workspace-name !-profilename     Create a new workspace with instructions profile
+    agmst !-profilename                     Replace instructions in current workspace with profile
+    agmst del /workspace-name               Delete a workspace
+    agmst del !-profilename                 Delete an instructions profile
+    agmst wsdir                             Show current workspace directory
+    agmst wsdir <path>                      Set workspace directory
+    agmst install                           Install AgentMasta
+    agmst uninstall                         Uninstall AgentMasta
+    agmst help                              Show this help message
+    agmst version                           Show version information
+
+DESCRIPTION:
+    Creates a new workspace folder with symlinks to your instructions files,
+    and opens it in VS Code. Use / prefix for workspace names to distinguish
+    them from profile commands.
+    
+    Type identifiers (@/ or C/) let you choose which root instructions file
+    to use when creating workspaces. This is useful when you have both AGENTS.md
+    and copilot-instructions.md in your [AgentMasta] root.
+    
+    Supports instructions profiles for different AI agents. Profiles are directories
+    in [AgentMasta] that start with !- prefix (e.g., !-snt4.5, !-gpt5, !-hku4.5).
+    
+    For copilot-instructions.md, automatically creates .github/ directory.
+
+INSTRUCTIONS PROFILES:
+    Profiles let you maintain different instructions sets for different AI agents.
+    All profile directories are stored as !-name format.
+    
+    Profile prefixes (for commands):
+        !@-name                Create instructions profile with AGENTS.md only
+        !C-name                Create instructions profile with copilot-instructions.md only
+        !@C-name OR !C@-name   Create instructions profile with both files
+        !-name                 Use instructions profile. If non-existent, create it and prompt user for instructions type(s)
+    
+    Creating profiles:
+        - Profiles auto-create if they don't exist
+        - Profile directories always named !-name
+        - Copy from root default instructions if available
+        - Copy from another profile: !@-new=!-existing
+        - Empty file created if no source available
+    
+    Examples:
+        !@-snt4.5                          Create/use AGENTS.md profile
+        !C-gpt5                            Create/use copilot profile
+        !@C-full                           Create/use both files profile
+        !-custom                           Prompt for file type
+        !@-new=!-existing                  Copy from existing profile
+
+CONFIGURATION:
+    Workspace directory is stored in the agmst script itself.
+    Use 'agmst wsdir <path>' to change where workspaces are created.
+    
+    Default instructions are read from [AgentMasta] root directory.
+
+EXAMPLES:${RESET}
+    agmst /my-project                  # Creates workspace with root instructions (both files if both exist)
+    agmst @/my-project                 # Creates workspace with AGENTS.md only (from root)
+    agmst C/my-project                 # Creates workspace with copilot-instructions.md only (from root)
+    agmst /my-project !@-snt4.5        # Creates workspace with AGENTS.md profile
+    agmst /my-project !C-gpt5          # Creates workspace with copilot profile
+    agmst !@-new=!-existing            # Replace instructions, copying from another profile
+    agmst /!important-ws               # Creates workspace named "!important-ws" (! allowed with / prefix)
+    agmst !@-gpt5                      # Replace instructions in current workspace
+    agmst del /my-project              # Delete a workspace
+    agmst del !-snt4.5                 # Delete an instructions profile
+    agmst wsdir                        # Show workspace directory
+    agmst wsdir ~/Projects             # Set workspace directory
+
+${BOLD}MORE INFO:${RESET}
+    https://github.com/xCORViSx/AgentMasta
+
+EOF
+}
+
+# This function just prints the current version number
+show_version() {
+	echo "AgentMasta [v${VERSION}]"
+	echo "Workspace Management Tool for Vibecoders"
+}
+
+# This function handles self-installation of the script
+install_self() {
+	echo "📦 Installing AgentMasta CLI tool..."
+	
+	# We store the current repository location before installation
+	local repo_dir="$AGENTMASTA_ROOT"
+	
+	# We determine the best installation directory
+	local install_dir="/usr/local/bin"
+	
+	# We create a temporary copy with the repo path embedded
+	local temp_script=$(mktemp)
+	sed "s|AGENTMASTA_ROOT=\"__AGENTMASTA_ROOT_PLACEHOLDER__\"|AGENTMASTA_ROOT=\"${repo_dir}\"|" "$0" > "$temp_script"
+	chmod +x "$temp_script"
+	
+	# We check if we can write to /usr/local/bin
+	if [ ! -w "/usr/local/bin" ]; then
+		echo "🔐 Requesting sudo permissions for installation..."
+		sudo mv "$temp_script" "${install_dir}/agmst"
+		sudo chmod +x "${install_dir}/agmst"
+	else
+		mv "$temp_script" "${install_dir}/agmst"
+		chmod +x "${install_dir}/agmst"
+	fi
+	
+	echo "✅ agmst installed to ${install_dir}/agmst"
+	echo "📁 Repository linked to: ${repo_dir}"
+	
+	# We check if the installation directory is in PATH
+	if [[ ":$PATH:" == *":${install_dir}:"* ]]; then
+		echo "✅ ${install_dir} is in your PATH"
+	else
+		echo "⚠️  ${install_dir} is not in your PATH"
+		echo "💡 Add this line to your shell configuration file:"
+		echo "   export PATH=\"${install_dir}:\$PATH\""
+		
+		# We suggest the appropriate config file based on the user's shell
+		if [ -n "$BASH_VERSION" ]; then
+			echo "   (Add to ~/.bashrc or ~/.bash_profile)"
+		elif [ -n "$ZSH_VERSION" ]; then
+			echo "   (Add to ~/.zshrc)"
+		fi
+	fi
+	
+	echo ""
+	echo "🎉 Installation complete!"
+	echo ""
+	echo "📖 Quick Start:"
+	echo "   1. Set workspace directory: agmst wsdir /path/to/workspaces"
+	echo "   2. Create a workspace: agmst /my-project"
+	echo "   3. View help: agmst help"
+	
+	exit 0
+}
+
+# This function handles uninstallation of the script
+uninstall_self() {
+	echo "🗑️  Uninstalling AgentMasta CLI tool..."
+	
+	local install_dir="/usr/local/bin"
+	local install_path="${install_dir}/agmst"
+	
+	# We check if agmst is installed
+	if [ ! -f "$install_path" ]; then
+		echo "❌ agmst is not installed at ${install_path}"
+		exit 1
+	fi
+	
+	# We ask for confirmation
+	read -p "Remove ${install_path}? (y/N) " -n 1 -r
+	echo
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "❌ Cancelled"
+		exit 1
+	fi
+	
+	# We remove the installed file
+	if [ ! -w "$install_dir" ]; then
+		echo "🔐 Requesting sudo permissions for uninstallation..."
+		sudo rm "$install_path"
+	else
+		rm "$install_path"
+	fi
+	
+	echo "✅ AgentMasta uninstalled successfully"
+	echo "💡 Workspace directories and profiles remain unchanged"
+	
+	exit 0
+}
+
+# This function validates and creates profile directories if needed
+# Profiles can start with !@- (AGENTS.md), !C- (copilot-instructions.md), !@C-/!C@- (both), or !- (prompt/use existing)
+# Identifiers (@, C, @C, C@) are ONLY for creating new profiles
+# All profile directories are stored as !-name regardless of command prefix
+# Supports copying from another profile with = syntax: !@-new=!-existing
+# Outputs: profile_path|created (where created is "true" or "false")
+validate_profile() {
+	local profile="$1"
+	local profile_name=""
+	local profile_type=""
+	local source_profile=""
+	local was_created="false"
+	local is_creation_command=false
+	
+	# We check if the profile uses = syntax to copy from another profile
+	if [[ "$profile" =~ ^(![@C]+-[^=]+)=(!-[^=]+)$ ]]; then
+		profile="${BASH_REMATCH[1]}"
+		source_profile="${BASH_REMATCH[2]}"
+	fi
+	
+	# We determine the profile type from the prefix and whether it's a creation command
+	if [[ "$profile" =~ ^!@C- ]] || [[ "$profile" =~ ^!C@- ]]; then
+		profile_type="both"
+		is_creation_command=true
+		profile_name="${profile#!@C-}"
+		profile_name="${profile_name#!C@-}"
+	elif [[ "$profile" =~ ^!@- ]]; then
+		profile_type="agents"
+		is_creation_command=true
+		profile_name="${profile#!@-}"
+	elif [[ "$profile" =~ ^!C- ]]; then
+		profile_type="copilot"
+		is_creation_command=true
+		profile_name="${profile#!C-}"
+	elif [[ "$profile" =~ ^!- ]]; then
+		profile_type="prompt"
+		is_creation_command=false
+		profile_name="${profile#!-}"
+	else
+		echo "❌ Error: Profile must start with !@- (AGENTS.md), !C- (copilot), !@C-/!C@- (both), or !- (prompt)" >&2
+		echo "💡 Examples: !@-snt4.5, !C-gpt5, !@C-full, !-custom" >&2
+		return 1
+	fi
+	
+	# We construct the full path to the profile directory
+	local profile_path="${AGENTMASTA_ROOT}/!-${profile_name}"
+	
+	# We check if this is a creation command but profile already exists
+	if $is_creation_command && [ -d "$profile_path" ]; then
+		echo "⚠️  Profile !-${profile_name} already exists" >&2
+		echo "" >&2
+		echo "Choose an option:" >&2
+		echo "  1) Use existing profile" >&2
+		echo "  2) Replace with new profile" >&2
+		echo "  C) Cancel" >&2
+		read -p "Choose (1/2/C): " choice
+		case "$choice" in
+			1)
+				echo "✅ Using existing profile !-${profile_name}" >&2
+				# Continue with existing profile - skip creation
+				;;
+			2)
+				echo "🗑️  Replacing profile !-${profile_name}..." >&2
+				rm -rf "$profile_path"
+				was_created="true"
+				# Will create new profile below
+				;;
+			[Cc])
+				echo "❌ Cancelled" >&2
+				return 1
+				;;
+			*)
+				echo "❌ Invalid choice. Cancelled" >&2
+				return 1
+				;;
+		esac
+	fi
+	
+	# We check if the profile directory exists or needs to be created
+	if [ ! -d "$profile_path" ] || [ "$was_created" = "true" ]; then
+		# For prompt-type (!-), inform user that profile doesn't exist first
+		if [ "$profile_type" = "prompt" ] && [ "$was_created" = "false" ]; then
+			echo "⚠️  Profile !-${profile_name} doesn't exist" >&2
+			echo "📋 Create new instructions profile?" >&2
+			echo "" >&2
+		fi
+		
+		# Mark as created if it wasn't already
+		if [ "$was_created" = "false" ]; then
+			was_created="true"
+		fi
+		
+		# Create directory if it doesn't exist
+		mkdir -p "$profile_path"
+		
+		# We determine what to copy based on source
+		if [ -n "$source_profile" ]; then
+			# Copy from another profile
+			local source_path="${AGENTMASTA_ROOT}/${source_profile}"
+			if [ ! -d "$source_path" ]; then
+				echo "❌ Error: Source profile ${source_profile} not found" >&2
+				rm -rf "$profile_path"
+				return 1
+			fi
+			
+			# We copy all instructions files from source profile
+			local copied=0
+			if [ -f "${source_path}/AGENTS.md" ]; then
+				cp "${source_path}/AGENTS.md" "${profile_path}/AGENTS.md"
+				echo "✅ Copied AGENTS.md from ${source_profile}" >&2
+				copied=1
+			fi
+			if [ -f "${source_path}/copilot-instructions.md" ]; then
+				cp "${source_path}/copilot-instructions.md" "${profile_path}/copilot-instructions.md"
+				echo "✅ Copied copilot-instructions.md from ${source_profile}" >&2
+				copied=1
+			fi
+			
+			if [ $copied -eq 0 ]; then
+				echo "❌ Error: Source profile ${source_profile} has no instructions files" >&2
+				rm -rf "$profile_path"
+				return 1
+			fi
+		else
+			# Create new profile - determine file type to create
+			local file_type="$profile_type"
+			if [ "$profile_type" = "prompt" ]; then
+				# Ask user which type they want
+				echo "Which instructions file type?" >&2
+				echo "  1) AGENTS.md" >&2
+				echo "  2) copilot-instructions.md" >&2
+				echo "  3) Both" >&2
+				echo "  D) Don't create" >&2
+				read -p "Choose (1/2/3/D): " choice
+				case "$choice" in
+					1) file_type="agents" ;;
+					2) file_type="copilot" ;;
+					3) file_type="both" ;;
+					[Dd]) 
+						echo "❌ Cancelled" >&2
+						rm -rf "$profile_path"
+						return 1
+						;;
+					*) file_type="agents" ;;
+				esac
+			fi
+			
+			# We determine what content to copy from root
+			local root_agents="${AGENTMASTA_ROOT}/AGENTS.md"
+			local root_copilot="${AGENTMASTA_ROOT}/copilot-instructions.md"
+			local has_agents_root=false
+			local has_copilot_root=false
+			
+			[ -f "$root_agents" ] && has_agents_root=true
+			[ -f "$root_copilot" ] && has_copilot_root=true
+			
+			# We create the appropriate instructions file(s) and copy content
+			if [ "$file_type" = "agents" ] || [ "$file_type" = "both" ]; then
+				# We determine what content to copy for AGENTS.md
+				if $has_agents_root && $has_copilot_root; then
+					# Both exist in root - copy from matching type (AGENTS.md)
+					cp "$root_agents" "${profile_path}/AGENTS.md"
+					echo "✅ Created AGENTS.md (copied from root AGENTS.md)" >&2
+				elif $has_agents_root; then
+					# Only AGENTS.md in root - copy it
+					cp "$root_agents" "${profile_path}/AGENTS.md"
+					echo "✅ Created AGENTS.md (copied from root AGENTS.md)" >&2
+				elif $has_copilot_root; then
+					# Only copilot in root - copy its content to AGENTS.md
+					cp "$root_copilot" "${profile_path}/AGENTS.md"
+					echo "✅ Created AGENTS.md (copied content from root copilot-instructions.md)" >&2
+				else
+					# No root files - create empty
+					touch "${profile_path}/AGENTS.md"
+					echo "✅ Created empty AGENTS.md" >&2
+				fi
+			fi
+			
+			if [ "$file_type" = "copilot" ] || [ "$file_type" = "both" ]; then
+				# We determine what content to copy for copilot-instructions.md
+				if $has_agents_root && $has_copilot_root; then
+					# Both exist in root - copy from matching type (copilot-instructions.md)
+					cp "$root_copilot" "${profile_path}/copilot-instructions.md"
+					echo "✅ Created copilot-instructions.md (copied from root copilot-instructions.md)" >&2
+				elif $has_copilot_root; then
+					# Only copilot in root - copy it
+					cp "$root_copilot" "${profile_path}/copilot-instructions.md"
+					echo "✅ Created copilot-instructions.md (copied from root copilot-instructions.md)" >&2
+				elif $has_agents_root; then
+					# Only AGENTS.md in root - copy its content to copilot-instructions.md
+					cp "$root_agents" "${profile_path}/copilot-instructions.md"
+					echo "✅ Created copilot-instructions.md (copied content from root AGENTS.md)" >&2
+				else
+					# No root files - create empty
+					touch "${profile_path}/copilot-instructions.md"
+					echo "✅ Created empty copilot-instructions.md" >&2
+				fi
+			fi
+			
+			echo "" >&2
+			echo "💡 Tip: Explicitly define instructions file(s) desired in new instructions profile:" >&2
+			echo "   !@-profilename for AGENTS.md only" >&2
+			echo "   !C-profilename for copilot-instructions.md only" >&2
+			echo "   !@C-profilename or !C@-profilename for both files" >&2
+			echo "   !-profilename for user prompt (if profile non-existent)" >&2
+			echo "💡 Append '=' to copy an existing profile: !@-new=!-existing" >&2
+			echo "" >&2
+		fi
+	fi
+	
+	# We verify the profile now has at least one instructions file
+	if [ ! -f "${profile_path}/AGENTS.md" ] && [ ! -f "${profile_path}/copilot-instructions.md" ]; then
+		echo "❌ Error: Profile !-${profile_name} has no instructions files" >&2
+		return 1
+	fi
+	
+	# We return the valid profile path and whether it was created
+	echo "${profile_path}|${was_created}"
+	return 0
+}
+
+# This function creates symlinks for instruction files from a profile or default location
+# It handles both AGENTS.md and copilot-instructions.md
+# Supports filtering by type: "agents" (AGENTS.md only), "copilot" (copilot-instructions.md only), or "both" (default)
+create_instruction_symlinks() {
+	local workspace_path="$1"
+	local instructions_source_dir="$2"
+	local file_type="${3:-both}"  # Default to both if not specified
+	
+	# We determine the source description for display
+	local source_description
+	local dir_basename=$(basename "$instructions_source_dir")
+	if [[ "$dir_basename" =~ ^!- ]]; then
+		# It's a profile directory (basename starts with !-)
+		source_description="from instructions profile: '${dir_basename}'"
+	else
+		# It's the root directory
+		source_description="from [AgentMasta] root"
+	fi
+	
+	# We check for AGENTS.md and symlink it to workspace root (if type allows)
+	if [ -f "${instructions_source_dir}/AGENTS.md" ] && [[ "$file_type" == "agents" || "$file_type" == "both" ]]; then
+		echo "🔗 Creating symlink to AGENTS.md (${source_description})..."
+		ln -sf "${instructions_source_dir}/AGENTS.md" "${workspace_path}/AGENTS.md"
+	fi
+	
+	# We check for copilot-instructions.md and symlink it to .github/ directory (if type allows)
+	if [ -f "${instructions_source_dir}/copilot-instructions.md" ] && [[ "$file_type" == "copilot" || "$file_type" == "both" ]]; then
+		echo "📁 Creating .github directory for copilot-instructions.md..."
+		mkdir -p "${workspace_path}/.github"
+		echo "🔗 Creating symlink to copilot-instructions.md (${source_description})..."
+		ln -sf "${instructions_source_dir}/copilot-instructions.md" "${workspace_path}/.github/copilot-instructions.md"
+	fi
+}
+
+# This function replaces instruction symlinks in the current workspace
+replace_instructions_in_current() {
+	local profile="$1"
+	
+	# We validate the profile
+	local profile_result
+	profile_result=$(validate_profile "$profile")
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+	
+	# We parse the result (path|created)
+	local profile_path="${profile_result%|*}"
+	local profile_was_created="${profile_result#*|}"
+	
+	# We extract just the profile directory name for display
+	local profile_display
+	profile_display=$(basename "$profile_path")
+	
+	# We check if we're in a directory (current workspace)
+	local current_dir="$(pwd)"
+	
+	# We show appropriate message based on whether profile was created
+	if [ "$profile_was_created" = "true" ]; then
+		echo "📋 Created new profile: ${profile_display}"
+	fi
+	
+	# We ask for confirmation before replacing
+	echo "📋 Current directory: ${current_dir}"
+	echo "🔄 This will replace instruction symlinks with profile: ${profile_display}"
+	read -p "Continue? (y/N) " -n 1 -r
+	echo
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "❌ Cancelled"
+		exit 1
+	fi
+	
+	# We remove existing instruction symlinks/files
+	echo "🗑️  Removing existing instruction files..."
+	rm -f "${current_dir}/AGENTS.md"
+	rm -rf "${current_dir}/.github/copilot-instructions.md"
+	
+	# We create new symlinks from the profile
+	create_instruction_symlinks "$current_dir" "$profile_path"
+	
+	echo "✅ Instructions replaced with profile: ${profile_display}"
+}
+
+# This function creates a new workspace with optional profile and optional type filter
+# Type prefix @/ creates AGENTS.md only, C/ creates copilot-instructions.md only
+create_workspace() {
+	local workspace_name="$1"
+	local profile="$2"
+	local file_type="both"  # Default to both files
+	
+	# We check if workspace_name has a type prefix (@/ or C/)
+	if [[ "$workspace_name" =~ ^@/ ]]; then
+		file_type="agents"
+		workspace_name="${workspace_name#@/}"  # Remove @/ prefix
+	elif [[ "$workspace_name" =~ ^C/ ]]; then
+		file_type="copilot"
+		workspace_name="${workspace_name#C/}"  # Remove C/ prefix
+	fi
+	
+	# We construct the full path to the new workspace
+	local workspace_path="${WORKSPACE_DIR}/${workspace_name}"
+	
+	# We check if the workspace directory already exists
+	if [ -d "$workspace_path" ]; then
+		echo "❌ Error: Workspace '${workspace_name}' already exists at: ${workspace_path}"
+		exit 1
+	fi
+	
+	# We determine the instructions source directory
+	local instructions_source_dir
+	local profile_was_created="false"
+	if [ -n "$profile" ]; then
+		# We validate and use the profile
+		local profile_result
+		profile_result=$(validate_profile "$profile")
+		if [ $? -ne 0 ]; then
+			exit 1
+		fi
+		
+		# We parse the result (path|created)
+		instructions_source_dir="${profile_result%|*}"
+		profile_was_created="${profile_result#*|}"
+		
+		# Note: We don't show "Creating/Using profile" here as the symlink message already indicates the source
+	else
+		# We use the default instructions directory (repo root)
+		instructions_source_dir="$AGENTMASTA_ROOT"
+		
+		# We check if the requested file type exists in repo root
+		local has_requested_file=false
+		if [ "$file_type" = "agents" ] && [ -f "${AGENTMASTA_ROOT}/AGENTS.md" ]; then
+			has_requested_file=true
+		elif [ "$file_type" = "copilot" ] && [ -f "${AGENTMASTA_ROOT}/copilot-instructions.md" ]; then
+			has_requested_file=true
+		elif [ "$file_type" = "both" ] && { [ -f "${AGENTMASTA_ROOT}/AGENTS.md" ] || [ -f "${AGENTMASTA_ROOT}/copilot-instructions.md" ]; }; then
+			has_requested_file=true
+		fi
+		
+		if ! $has_requested_file; then
+			echo "⚠️  Warning: No instructions files found in [AgentMasta] root"
+			echo "💡 Add AGENTS.md or copilot-instructions.md to [AgentMasta] directory"
+			read -p "Continue anyway? (y/N) " -n 1 -r
+			echo
+			if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+				echo "❌ Cancelled"
+				exit 1
+			fi
+		fi
+	fi
+	
+	# We create the workspace directory
+	echo "📁 Creating workspace directory: ${workspace_path}"
+	mkdir -p "$workspace_path"
+	
+	# We create symlinks from the determined source directory with file type filter
+	create_instruction_symlinks "$workspace_path" "$instructions_source_dir" "$file_type"
+	
+	# We check if VS Code is available
+	if command -v code &> /dev/null; then
+		# We open the workspace in VS Code
+		echo "🚀 Opening workspace in VS Code..."
+		code "$workspace_path"
+		echo "✅ Workspace '${workspace_name}' created and opened successfully!"
+	else
+		# We inform the user that VS Code wasn't found
+		echo "⚠️  VS Code command 'code' not found in PATH"
+		echo "✅ Workspace '${workspace_name}' created at: ${workspace_path}"
+		echo "💡 Tip: Install VS Code CLI with: code --install"
+	fi
+}
+
+# This function deletes a workspace directory
+delete_workspace() {
+	local workspace_name="$1"
+	
+	# We construct the full path to the workspace
+	local workspace_path="${WORKSPACE_DIR}/${workspace_name}"
+	
+	# We check if the workspace directory exists
+	if [ ! -d "$workspace_path" ]; then
+		echo "❌ Error: Workspace '${workspace_name}' doesn't exist at: ${workspace_path}"
+		exit 1
+	fi
+	
+	# We show what will be deleted and ask for confirmation
+	echo "⚠️  About to delete workspace: ${workspace_name}"
+	echo "📁 Path: ${workspace_path}"
+	read -p "Are you sure? (y/N) " -n 1 -r
+	echo
+	
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "❌ Cancelled"
+		exit 1
+	fi
+	
+	# We delete the workspace directory
+	rm -rf "$workspace_path"
+	echo "✅ Workspace '${workspace_name}' deleted successfully"
+}
+
+# This function deletes an instructions profile
+delete_profile() {
+	local profile_name="$1"
+	
+	# We normalize the profile name to !-name format
+	if [[ "$profile_name" =~ ^![@C]*-(.+)$ ]]; then
+		# Extract the name part after the prefix
+		profile_name="${BASH_REMATCH[1]}"
+	elif [[ "$profile_name" =~ ^!-(.+)$ ]]; then
+		# Already in !-name format, extract just the name
+		profile_name="${BASH_REMATCH[1]}"
+	fi
+	
+	# We construct the profile directory path (always !-name format)
+	local profile_path="${AGENTMASTA_ROOT}/!-${profile_name}"
+	
+	# We check if the profile exists
+	if [ ! -d "$profile_path" ]; then
+		echo "❌ Error: Profile '!-${profile_name}' doesn't exist"
+		exit 1
+	fi
+	
+	# We show what will be deleted and ask for confirmation
+	echo "⚠️  About to delete profile: !-${profile_name}"
+	echo "📁 Path: ${profile_path}"
+	
+	# We list the files that will be deleted
+	if [ -f "${profile_path}/AGENTS.md" ] || [ -f "${profile_path}/.github/copilot-instructions.md" ]; then
+		echo "📄 Contains:"
+		[ -f "${profile_path}/AGENTS.md" ] && echo "   - AGENTS.md"
+		[ -f "${profile_path}/.github/copilot-instructions.md" ] && echo "   - copilot-instructions.md"
+	fi
+	
+	read -p "Are you sure? (y/N) " -n 1 -r
+	echo
+	
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "❌ Cancelled"
+		exit 1
+	fi
+	
+	# We delete the profile directory
+	rm -rf "$profile_path"
+	echo "✅ Profile '!-${profile_name}' deleted successfully"
+}
+
+# This function displays the current configuration to the user
+show_config() {
+	# We display the configuration in a readable format
+	cat << EOF
+
+${BOLD}${CYAN}📋 Current AgentMasta Configuration:${RESET}
+
+${BOLD}Workspace Directory:${RESET}     ${GREEN}${WORKSPACE_DIR}${RESET}
+
+${DIM}To change workspace directory, run:${RESET} agmst wsdir <path>
+
+EOF
+}
+
+# This is the main entry point of the script
+# We parse the command-line arguments and route to the appropriate function
+main() {
+	# We get the first argument as the command
+	local command="$1"
+	local second_arg="$2"
+
+	# We handle different commands with a case statement
+	case "$command" in
+		"")
+			# We show help if no command is provided
+			show_help
+			;;
+		help|--help|-h)
+			# We show help for explicit help requests
+			show_help
+			;;
+		version|--version|-v)
+			# We show version information
+			show_version
+			;;
+		install)
+			# We handle self-installation
+			install_self
+			;;
+		uninstall)
+			# We handle uninstallation
+			uninstall_self
+			;;
+		del|delete|rm)
+			# We handle deletion of workspaces or profiles
+			if [ -z "$second_arg" ]; then
+				echo "❌ Error: Missing argument for del command"
+				echo "💡 Usage: agmst del /workspace-name  OR  agmst del !-profilename"
+				exit 1
+			fi
+			
+			if [[ "$second_arg" =~ ^/ ]]; then
+				# Delete workspace (remove leading /)
+				delete_workspace "${second_arg#/}"
+			elif [[ "$second_arg" =~ ^![@C]*- ]]; then
+				# Delete profile
+				delete_profile "$second_arg"
+			else
+				echo "❌ Error: Invalid argument for del command: $second_arg"
+				echo "💡 Workspace names must start with / (e.g., agmst del /my-project)"
+				echo "💡 Profile names must start with !@-, !C-, or !- (e.g., agmst del !-snt4.5)"
+				exit 1
+			fi
+			;;
+		wsdir)
+			# We handle workspace directory management
+			if [ -z "$second_arg" ]; then
+				# Show current workspace directory
+				show_workspace_dir
+			else
+				# Set new workspace directory
+				set_workspace_dir "$second_arg"
+			fi
+			;;
+		!@C-*|!C@-*|!@-*|!C-*|!-*)
+			# We treat arguments starting with profile prefixes as profile for current workspace
+			replace_instructions_in_current "$command"
+			;;
+		@/*|C/*)
+			# We treat arguments starting with @/ or C/ as typed workspace names
+			# @/ creates AGENTS.md only, C/ creates copilot-instructions.md only
+			if [[ "$second_arg" =~ ^![@C]*- ]]; then
+				# Create workspace with profile (type prefix ignored when profile specified)
+				local workspace_name="${command#*/}"  # Remove type prefix
+				create_workspace "$workspace_name" "$second_arg"
+			else
+				# Create workspace with type filter from root
+				create_workspace "$command"
+			fi
+			;;
+		/*)
+			# We treat arguments starting with / as workspace names
+			# This allows workspace names to start with any character, including !
+			local workspace_name="${command#/}"  # Remove leading /
+			
+			if [[ "$second_arg" =~ ^![@C]*- ]]; then
+				# Create workspace with profile
+				create_workspace "$workspace_name" "$second_arg"
+			else
+				# Create workspace without profile (default instructions)
+				create_workspace "$workspace_name"
+			fi
+			;;
+		*)
+			# Unrecognized command - show error and help
+			echo "❌ Error: Unrecognized command: $command"
+			echo "💡 Workspace names must start with / (e.g., agmst /my-project)"
+			echo "💡 Profile names must start with !@-, !C-, or !- (e.g., agmst !@-snt4.5)"
+			echo "💡 Run 'agmst help' for usage information"
+			exit 1
+			;;
+	esac
+}
+
+# We call the main function with all script arguments
+main "$@"
