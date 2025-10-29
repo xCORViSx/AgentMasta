@@ -185,7 +185,24 @@ This document outlines the development phases and current status of the AgentMas
 
 ---
 
-## Phase 11: Future Enhancements 📋 PLANNED
+## Phase 11: Root Instructions Replacement ✅ COMPLETE
+
+**Status:** Released v1.4.0 (October 29, 2025)
+
+### Root Replacement Features
+
+- ✅ `agmst !` command to replace instructions with root files
+- ✅ `agmst !A` command to replace with AGENTS.md only from root
+- ✅ `agmst !c` command to replace with copilot-instructions.md only from root
+- ✅ Confirmation prompt before replacing instructions
+- ✅ File type validation ensuring requested files exist
+- ✅ Cross-platform implementation (bash and PowerShell)
+- ✅ Help documentation updated with new commands
+- ✅ README examples showing root replacement usage
+
+---
+
+## Phase 12: Future Enhancements 📋 PLANNED
 
 **Status:** Not started
 
@@ -213,6 +230,7 @@ The AgentMasta CLI tool is feature-complete with comprehensive workspace and pro
 - ✅ Instructions profiles for different AI agents
 - ✅ / prefix syntax for workspace names
 - ✅ Type identifiers (A/ and c/) for selective root instructions
+- ✅ Root replacement commands (!, !A, !c) for reverting to default instructions
 - ✅ Profile types display command (proftypes)
 - ✅ wsdir command for workspace directory management
 - ✅ Deletion commands for workspaces and profiles
@@ -221,12 +239,13 @@ The AgentMasta CLI tool is feature-complete with comprehensive workspace and pro
 - ✅ Installation scripts for all platforms
 - ✅ VS Code integration
 
-**Next Action:** Consider tagging a new release version with the proftypes feature.
+**Next Action:** Consider tagging a new release version v1.4.0 with the root replacement feature.
 
 ---
 
 ## Version History
 
+- **v1.4.0** (October 29, 2025) - Added root instructions replacement commands (!, !A, !c)
 - **v1.3.0** (October 29, 2025) - Added proftypes command and improved profile creation UX
 - **v1.2.0** (October 28, 2025) - Added workspace type identifiers (A/ and c/)
 - **v1.1.0** (October 28, 2025) - Added deletion commands and enhanced UX

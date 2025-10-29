@@ -227,11 +227,28 @@ agmst /ui-project !-frontend
 
 ### Replace Instructions in Current Workspace
 
+#### Using Instructions Profiles
+
 ```bash
 agmst !-gpt5
 ```
 
 Replaces instructions files in your current workspace with those from the `!-gpt5` profile.
+
+#### Using Root Instructions Files
+
+```bash
+# Replace with all available root instructions files
+agmst !
+
+# Replace with AGENTS.md only from root
+agmst !A
+
+# Replace with copilot-instructions.md only from root
+agmst !c
+```
+
+Replaces instructions files in your current workspace with those from the `[AgentMasta]` root directory (not a profile). This is useful for quickly reverting to your default instructions setup.
 
 ### Delete Workspaces and Profiles
 
@@ -331,6 +348,15 @@ agmst /agent-workspace !-new-agent
 
 # Replace instructions in current workspace with GPT-5 profile
 agmst !-gpt5
+
+# Replace instructions with root files (both if available)
+agmst !
+
+# Replace instructions with AGENTS.md only from root
+agmst !A
+
+# Replace instructions with copilot-instructions.md only from root
+agmst !c
 
 # Delete a workspace
 agmst del /old-project

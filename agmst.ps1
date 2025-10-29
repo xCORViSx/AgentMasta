@@ -3,7 +3,7 @@
 # and provides workspace management features for AI-assisted development
 
 # We define the version number for this CLI tool
-$VERSION = "1.2.0"
+$VERSION = "1.4.0"
 
 # We determine where this script is installed
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -61,6 +61,9 @@ USAGE:
     agmst A/workspace-name                  Create workspace with AGENTS.md only (from root)
     agmst c/workspace-name                  Create workspace with copilot-instructions.md only (from root)
     agmst /workspace-name !-profilename     Create a new workspace with instructions profile
+    agmst !                                 Replace instructions in current workspace with root files
+    agmst !A                                Replace instructions with AGENTS.md from root
+    agmst !c                                Replace instructions with copilot-instructions.md from root
     agmst !-profilename                     Replace instructions in current workspace with profile
     agmst del /workspace-name               Delete a workspace
     agmst del !-profilename                 Delete an instructions profile
@@ -123,9 +126,12 @@ EXAMPLES:
     agmst c/my-project                 # Creates workspace with copilot-instructions.md only (from root)
     agmst /my-project !A-snt4.5        # Creates workspace with AGENTS.md profile
     agmst /my-project !c-gpt5          # Creates workspace with copilot profile
+    agmst !                            # Replace instructions with root files (both if available)
+    agmst !A                           # Replace instructions with AGENTS.md from root
+    agmst !c                           # Replace instructions with copilot-instructions.md from root
     agmst !A-new=!-existing            # Replace instructions, copying from another profile
     agmst /!important-ws               # Creates workspace named "!important-ws" (! allowed with / prefix)
-    agmst !A-gpt5                      # Replace instructions in current workspace
+    agmst !A-gpt5                      # Replace instructions in current workspace with profile
     agmst del /my-project              # Delete a workspace
     agmst del !-snt4.5                 # Delete an instructions profile
     agmst wsdir                        # Show workspace directory
@@ -537,6 +543,67 @@ function Create-InstructionSymlinks {
 }
 
 # This function replaces instruction symlinks in the current workspace
+# This function replaces instruction symlinks in the current workspace with files from root
+function Replace-InstructionsFromRoot {
+    param([string]$FileType = "both")
+    
+    # We check if we're in a directory (current workspace)
+    $currentDir = Get-Location
+    
+    # We check if the requested file type exists in root
+    $hasRequestedFile = $false
+    if ($FileType -eq "agents" -and (Test-Path (Join-Path $AGENTMASTA_ROOT "AGENTS.md"))) {
+        $hasRequestedFile = $true
+    } elseif ($FileType -eq "copilot" -and (Test-Path (Join-Path $AGENTMASTA_ROOT "copilot-instructions.md"))) {
+        $hasRequestedFile = $true
+    } elseif ($FileType -eq "both" -and ((Test-Path (Join-Path $AGENTMASTA_ROOT "AGENTS.md")) -or (Test-Path (Join-Path $AGENTMASTA_ROOT "copilot-instructions.md")))) {
+        $hasRequestedFile = $true
+    }
+    
+    if (-not $hasRequestedFile) {
+        Write-Host "❌ Error: No instructions files found in [AgentMasta] root" -ForegroundColor Red
+        if ($FileType -eq "agents") {
+            Write-Host "💡 AGENTS.md not found in $AGENTMASTA_ROOT" -ForegroundColor Yellow
+        } elseif ($FileType -eq "copilot") {
+            Write-Host "💡 copilot-instructions.md not found in $AGENTMASTA_ROOT" -ForegroundColor Yellow
+        } else {
+            Write-Host "💡 No AGENTS.md or copilot-instructions.md found in $AGENTMASTA_ROOT" -ForegroundColor Yellow
+        }
+        exit 1
+    }
+    
+    # We ask for confirmation before replacing
+    Write-Host "📋 Current directory: $currentDir" -ForegroundColor Cyan
+    Write-Host "🔄 This will replace instruction symlinks with files from [AgentMasta] root" -ForegroundColor Yellow
+    if ($FileType -eq "agents") {
+        Write-Host "📄 File type: AGENTS.md only" -ForegroundColor Cyan
+    } elseif ($FileType -eq "copilot") {
+        Write-Host "📄 File type: copilot-instructions.md only" -ForegroundColor Cyan
+    } else {
+        Write-Host "📄 File type: both (if available)" -ForegroundColor Cyan
+    }
+    $response = Read-Host "Continue? (y/N)"
+    if ($response -ne 'y' -and $response -ne 'Y') {
+        Write-Host "❌ Cancelled" -ForegroundColor Red
+        exit 1
+    }
+    
+    # We remove existing instruction symlinks/files based on type
+    Write-Host "🗑️  Removing existing instruction files..." -ForegroundColor Cyan
+    if ($FileType -eq "agents" -or $FileType -eq "both") {
+        Remove-Item (Join-Path $currentDir "AGENTS.md") -ErrorAction SilentlyContinue -Force
+    }
+    if ($FileType -eq "copilot" -or $FileType -eq "both") {
+        Remove-Item (Join-Path $currentDir ".github\copilot-instructions.md") -ErrorAction SilentlyContinue -Force
+    }
+    
+    # We create new symlinks from the root
+    Create-InstructionSymlinks -WorkspacePath $currentDir -InstructionsSourceDir $AGENTMASTA_ROOT -FileType $FileType
+    
+    Write-Host "✅ Instructions replaced with files from [AgentMasta] root" -ForegroundColor Green
+}
+
+# This function replaces instruction symlinks in the current workspace with a profile
 function Replace-InstructionsInCurrent {
     param([string]$Profile)
     
@@ -1065,6 +1132,21 @@ function Main {
         }
         "proftypes" {
             Show-ProfileTypes
+        }
+        "!Ac" {
+            Replace-InstructionsFromRoot -FileType "both"
+        }
+        "!cA" {
+            Replace-InstructionsFromRoot -FileType "both"
+        }
+        "!A" {
+            Replace-InstructionsFromRoot -FileType "agents"
+        }
+        "!c" {
+            Replace-InstructionsFromRoot -FileType "copilot"
+        }
+        "!" {
+            Replace-InstructionsFromRoot -FileType "both"
         }
         default {
             # We check if the command starts with profile prefixes (profile for current workspace)

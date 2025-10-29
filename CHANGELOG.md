@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-10-29
+
+### Added
+
+- **Root Instructions Replacement Commands**: Added `!`, `!A`, and `!c` commands for replacing workspace instructions with files from [AgentMasta] root
+  - `agmst !` replaces with all available root instructions files (both if present)
+  - `agmst !A` replaces with AGENTS.md only from root
+  - `agmst !c` replaces with copilot-instructions.md only from root
+  - Confirmation prompt before replacing instructions
+  - File type validation ensures requested files exist in root
+  - Helpful error messages when requested files are missing
+  - Useful for quickly reverting to default instructions setup
+  - Available in both bash and PowerShell versions
+- Help documentation updated with new root replacement commands
+- README examples showing root replacement usage in multiple sections
+
 ## [1.3.0] - 2025-10-29
 
 ### Added
@@ -174,6 +190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .gitignore configuration
 - GitHub-ready repository structure
 
+[1.4.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.4.0
 [1.3.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.3.0
 [1.2.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.2.0
 [1.1.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.1.0

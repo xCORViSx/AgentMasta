@@ -6,7 +6,7 @@
 # and opens them in VS Code
 
 # We define the version number for this CLI tool
-VERSION="1.2.0"
+VERSION="1.4.0"
 
 # We determine where this script is installed
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -77,6 +77,9 @@ USAGE:
     agmst A/workspace-name                  Create workspace with AGENTS.md only (from root)
     agmst c/workspace-name                  Create workspace with copilot-instructions.md only (from root)
     agmst /workspace-name !-profilename     Create a new workspace with instructions profile
+    agmst !                                 Replace instructions in current workspace with root files
+    agmst !A                                Replace instructions with AGENTS.md from root
+    agmst !c                                Replace instructions with copilot-instructions.md from root
     agmst !-profilename                     Replace instructions in current workspace with profile
     agmst del /workspace-name               Delete a workspace
     agmst del !-profilename                 Delete an instructions profile
@@ -138,9 +141,12 @@ EXAMPLES:${RESET}
     agmst c/my-project                 # Creates workspace with copilot-instructions.md only (from root)
     agmst /my-project !A-snt4.5        # Creates workspace with AGENTS.md profile
     agmst /my-project !c-gpt5          # Creates workspace with copilot profile
+    agmst !                            # Replace instructions with root files (both if available)
+    agmst !A                           # Replace instructions with AGENTS.md from root
+    agmst !c                           # Replace instructions with copilot-instructions.md from root
     agmst !A-new=!-existing            # Replace instructions, copying from another profile
     agmst /!important-ws               # Creates workspace named "!important-ws" (! allowed with / prefix)
-    agmst !A-gpt5                      # Replace instructions in current workspace
+    agmst !A-gpt5                      # Replace instructions in current workspace with profile
     agmst del /my-project              # Delete a workspace
     agmst del !-snt4.5                 # Delete an instructions profile
     agmst wsdir                        # Show workspace directory
@@ -501,6 +507,67 @@ create_instruction_symlinks() {
 		echo "🔗 Creating symlink to copilot-instructions.md (${source_description})..."
 		ln -sf "${instructions_source_dir}/copilot-instructions.md" "${workspace_path}/.github/copilot-instructions.md"
 	fi
+}
+
+# This function replaces instruction symlinks in the current workspace with files from root
+replace_instructions_from_root() {
+	local file_type="${1:-both}"  # Default to both if not specified
+	
+	# We check if we're in a directory (current workspace)
+	local current_dir="$(pwd)"
+	
+	# We check if the requested file type exists in root
+	local has_requested_file=false
+	if [ "$file_type" = "agents" ] && [ -f "${AGENTMASTA_ROOT}/AGENTS.md" ]; then
+		has_requested_file=true
+	elif [ "$file_type" = "copilot" ] && [ -f "${AGENTMASTA_ROOT}/copilot-instructions.md" ]; then
+		has_requested_file=true
+	elif [ "$file_type" = "both" ] && { [ -f "${AGENTMASTA_ROOT}/AGENTS.md" ] || [ -f "${AGENTMASTA_ROOT}/copilot-instructions.md" ]; }; then
+		has_requested_file=true
+	fi
+	
+	if ! $has_requested_file; then
+		echo "❌ Error: No instructions files found in [AgentMasta] root"
+		if [ "$file_type" = "agents" ]; then
+			echo "💡 AGENTS.md not found in ${AGENTMASTA_ROOT}"
+		elif [ "$file_type" = "copilot" ]; then
+			echo "💡 copilot-instructions.md not found in ${AGENTMASTA_ROOT}"
+		else
+			echo "💡 No AGENTS.md or copilot-instructions.md found in ${AGENTMASTA_ROOT}"
+		fi
+		exit 1
+	fi
+	
+	# We ask for confirmation before replacing
+	echo "📋 Current directory: ${current_dir}"
+	echo "🔄 This will replace instruction symlinks with files from [AgentMasta] root"
+	if [ "$file_type" = "agents" ]; then
+		echo "📄 File type: AGENTS.md only"
+	elif [ "$file_type" = "copilot" ]; then
+		echo "📄 File type: copilot-instructions.md only"
+	else
+		echo "📄 File type: both (if available)"
+	fi
+	read -p "Continue? (y/N) " -n 1 -r
+	echo
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "❌ Cancelled"
+		exit 1
+	fi
+	
+	# We remove existing instruction symlinks/files based on type
+	echo "🗑️  Removing existing instruction files..."
+	if [ "$file_type" = "agents" ] || [ "$file_type" = "both" ]; then
+		rm -f "${current_dir}/AGENTS.md"
+	fi
+	if [ "$file_type" = "copilot" ] || [ "$file_type" = "both" ]; then
+		rm -rf "${current_dir}/.github/copilot-instructions.md"
+	fi
+	
+	# We create new symlinks from the root
+	create_instruction_symlinks "$current_dir" "$AGENTMASTA_ROOT" "$file_type"
+	
+	echo "✅ Instructions replaced with files from [AgentMasta] root"
 }
 
 # This function replaces instruction symlinks in the current workspace
@@ -1010,6 +1077,22 @@ main() {
 		proftypes)
 			# We display all profiles with their instruction types
 			show_profile_types
+			;;
+		!Ac|!cA)
+			# Replace instructions in current workspace with both files from root
+			replace_instructions_from_root "both"
+			;;
+		!A)
+			# Replace instructions in current workspace with AGENTS.md from root
+			replace_instructions_from_root "agents"
+			;;
+		!c)
+			# Replace instructions in current workspace with copilot-instructions.md from root
+			replace_instructions_from_root "copilot"
+			;;
+		!)
+			# Replace instructions in current workspace with all files from root
+			replace_instructions_from_root "both"
 			;;
 		!Ac-*|!cA-*|!A-*|!c-*|!-*)
 			# We treat arguments starting with profile prefixes as profile for current workspace
