@@ -106,24 +106,24 @@ INSTRUCTIONS PROFILES:
     All profile directories are stored as !-name format.
     
     Profile prefixes (for commands):
-        !@-name                Create instructions profile with AGENTS.md only
-        !C-name                Create instructions profile with copilot-instructions.md only
-        !@C-name OR !C@-name   Create instructions profile with both files
+        !A-name                Create instructions profile with AGENTS.md only
+        !c-name                Create instructions profile with copilot-instructions.md only
+        !Ac-name OR !cA-name   Create instructions profile with both files
         !-name                 Use instructions profile. If non-existent, create it and prompt user for instructions type(s)
     
     Creating profiles:
         - Profiles auto-create if they don't exist
         - Profile directories always named !-name
         - Copy from root default instructions if available
-        - Copy from another profile: !@-new=!-existing
+        - Copy from another profile: !A-new=!-existing
         - Empty file created if no source available
     
     Examples:
-        !@-snt4.5                          Create/use AGENTS.md profile
-        !C-gpt5                            Create/use copilot profile
-        !@C-full                           Create/use both files profile
+        !A-snt4.5                          Create/use AGENTS.md profile
+        !c-gpt5                            Create/use copilot profile
+        !Ac-full                           Create/use both files profile
         !-custom                           Prompt for file type
-        !@-new=!-existing                  Copy from existing profile
+        !A-new=!-existing                  Copy from existing profile
 
 CONFIGURATION:
     Workspace directory is stored in the agmst script itself.
@@ -135,11 +135,11 @@ EXAMPLES:${RESET}
     agmst /my-project                  # Creates workspace with root instructions (both files if both exist)
     agmst A/my-project                 # Creates workspace with AGENTS.md only (from root)
     agmst c/my-project                 # Creates workspace with copilot-instructions.md only (from root)
-    agmst /my-project !@-snt4.5        # Creates workspace with AGENTS.md profile
-    agmst /my-project !C-gpt5          # Creates workspace with copilot profile
-    agmst !@-new=!-existing            # Replace instructions, copying from another profile
+    agmst /my-project !A-snt4.5        # Creates workspace with AGENTS.md profile
+    agmst /my-project !c-gpt5          # Creates workspace with copilot profile
+    agmst !A-new=!-existing            # Replace instructions, copying from another profile
     agmst /!important-ws               # Creates workspace named "!important-ws" (! allowed with / prefix)
-    agmst !@-gpt5                      # Replace instructions in current workspace
+    agmst !A-gpt5                      # Replace instructions in current workspace
     agmst del /my-project              # Delete a workspace
     agmst del !-snt4.5                 # Delete an instructions profile
     agmst wsdir                        # Show workspace directory
@@ -248,10 +248,10 @@ uninstall_self() {
 }
 
 # This function validates and creates profile directories if needed
-# Profiles can start with !@- (AGENTS.md), !C- (copilot-instructions.md), !@C-/!C@- (both), or !- (prompt/use existing)
-# Identifiers (@, C, @C, C@) are ONLY for creating new profiles
+# Profiles can start with !A- (AGENTS.md), !c- (copilot-instructions.md), !Ac-/!cA- (both), or !- (prompt/use existing)
+# Identifiers (A, c, Ac, cA) are ONLY for creating new profiles
 # All profile directories are stored as !-name regardless of command prefix
-# Supports copying from another profile with = syntax: !@-new=!-existing
+# Supports copying from another profile with = syntax: !A-new=!-existing
 # Outputs: profile_path|created (where created is "true" or "false")
 validate_profile() {
 	local profile="$1"
@@ -262,32 +262,32 @@ validate_profile() {
 	local is_creation_command=false
 	
 	# We check if the profile uses = syntax to copy from another profile
-	if [[ "$profile" =~ ^(![@C]+-[^=]+)=(!-[^=]+)$ ]]; then
+	if [[ "$profile" =~ ^(![Ac]+-[^=]+)=(!-[^=]+)$ ]]; then
 		profile="${BASH_REMATCH[1]}"
 		source_profile="${BASH_REMATCH[2]}"
 	fi
 	
 	# We determine the profile type from the prefix and whether it's a creation command
-	if [[ "$profile" =~ ^!@C- ]] || [[ "$profile" =~ ^!C@- ]]; then
+	if [[ "$profile" =~ ^!Ac- ]] || [[ "$profile" =~ ^!cA- ]]; then
 		profile_type="both"
 		is_creation_command=true
-		profile_name="${profile#!@C-}"
-		profile_name="${profile_name#!C@-}"
-	elif [[ "$profile" =~ ^!@- ]]; then
+		profile_name="${profile#!Ac-}"
+		profile_name="${profile_name#!cA-}"
+	elif [[ "$profile" =~ ^!A- ]]; then
 		profile_type="agents"
 		is_creation_command=true
-		profile_name="${profile#!@-}"
-	elif [[ "$profile" =~ ^!C- ]]; then
+		profile_name="${profile#!A-}"
+	elif [[ "$profile" =~ ^!c- ]]; then
 		profile_type="copilot"
 		is_creation_command=true
-		profile_name="${profile#!C-}"
+		profile_name="${profile#!c-}"
 	elif [[ "$profile" =~ ^!- ]]; then
 		profile_type="prompt"
 		is_creation_command=false
 		profile_name="${profile#!-}"
 	else
-		echo "❌ Error: Profile must start with !@- (AGENTS.md), !C- (copilot), !@C-/!C@- (both), or !- (prompt)" >&2
-		echo "💡 Examples: !@-snt4.5, !C-gpt5, !@C-full, !-custom" >&2
+		echo "❌ Error: Profile must start with !A- (AGENTS.md), !c- (copilot), !Ac-/!cA- (both), or !- (prompt)" >&2
+		echo "💡 Examples: !A-snt4.5, !c-gpt5, !Ac-full, !-custom" >&2
 		return 1
 	fi
 	
@@ -448,11 +448,11 @@ validate_profile() {
 			
 			echo "" >&2
 			echo "💡 Tip: Explicitly define instructions file(s) desired in new instructions profile:" >&2
-			echo "   !@-profilename for AGENTS.md only" >&2
-			echo "   !C-profilename for copilot-instructions.md only" >&2
-			echo "   !@C-profilename or !C@-profilename for both files" >&2
+			echo "   !A-profilename for AGENTS.md only" >&2
+			echo "   !c-profilename for copilot-instructions.md only" >&2
+			echo "   !Ac-profilename or !cA-profilename for both files" >&2
 			echo "   !-profilename for user prompt (if profile non-existent)" >&2
-			echo "💡 Append '=' to copy an existing profile: !@-new=!-existing" >&2
+			echo "💡 Append '=' to copy an existing profile: !A-new=!-existing" >&2
 			echo "" >&2
 		fi
 	fi
@@ -811,7 +811,7 @@ delete_profile() {
 	local profile_name="$1"
 	
 	# We normalize the profile name to !-name format
-	if [[ "$profile_name" =~ ^![@C]*-(.+)$ ]]; then
+	if [[ "$profile_name" =~ ^![Ac]*-(.+)$ ]]; then
 		# Extract the name part after the prefix
 		profile_name="${BASH_REMATCH[1]}"
 	elif [[ "$profile_name" =~ ^!-(.+)$ ]]; then
@@ -906,13 +906,13 @@ main() {
 			if [[ "$second_arg" =~ ^/ ]]; then
 				# Delete workspace (remove leading /)
 				delete_workspace "${second_arg#/}"
-			elif [[ "$second_arg" =~ ^![@C]*- ]]; then
+			elif [[ "$second_arg" =~ ^![Ac]*- ]]; then
 				# Delete profile
 				delete_profile "$second_arg"
 			else
 				echo "❌ Error: Invalid argument for del command: $second_arg"
 				echo "💡 Workspace names must start with / (e.g., agmst del /my-project)"
-				echo "💡 Profile names must start with !@-, !C-, or !- (e.g., agmst del !-snt4.5)"
+				echo "💡 Profile names must start with !A-, !c-, or !- (e.g., agmst del !-snt4.5)"
 				exit 1
 			fi
 			;;
@@ -926,14 +926,14 @@ main() {
 				set_workspace_dir "$second_arg"
 			fi
 			;;
-		!@C-*|!C@-*|!@-*|!C-*|!-*)
+		!Ac-*|!cA-*|!A-*|!c-*|!-*)
 			# We treat arguments starting with profile prefixes as profile for current workspace
 			replace_instructions_in_current "$command"
 			;;
 		A/*|c/*)
 			# We treat arguments starting with A/ or c/ as typed workspace names
 			# A/ creates AGENTS.md only, c/ creates copilot-instructions.md only
-			if [[ "$second_arg" =~ ^![@C]*- ]]; then
+			if [[ "$second_arg" =~ ^![Ac]*- ]]; then
 				# Create workspace with profile (type prefix ignored when profile specified)
 				local workspace_name="${command#*/}"  # Remove type prefix
 				create_workspace "$workspace_name" "$second_arg"
@@ -947,7 +947,7 @@ main() {
 			# This allows workspace names to start with any character, including !
 			local workspace_name="${command#/}"  # Remove leading /
 			
-			if [[ "$second_arg" =~ ^![@C]*- ]]; then
+			if [[ "$second_arg" =~ ^![Ac]*- ]]; then
 				# Create workspace with profile
 				create_workspace "$workspace_name" "$second_arg"
 			else
@@ -959,7 +959,7 @@ main() {
 			# Unrecognized command - show error and help
 			echo "❌ Error: Unrecognized command: $command"
 			echo "💡 Workspace names must start with / (e.g., agmst /my-project)"
-			echo "💡 Profile names must start with !@-, !C-, or !- (e.g., agmst !@-snt4.5)"
+			echo "💡 Profile names must start with !A-, !c-, or !- (e.g., agmst !A-snt4.5)"
 			echo "💡 Run 'agmst help' for usage information"
 			exit 1
 			;;

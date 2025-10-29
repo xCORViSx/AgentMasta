@@ -173,17 +173,17 @@ Creates workspace using instructions from the `!-snt4.5` profile directory.
 
 **Profile Types:**
 
-- `!@-name` - AGENTS.md only (for agentic tools like MCP servers)
-- `!C-name` - copilot-instructions.md only (for copilot-specific workflows)
-- `!@C-name` or `!C@-name` - Both files (for complete setups)
+- `!A-name` - AGENTS.md only (for agentic tools like MCP servers)
+- `!c-name` - copilot-instructions.md only (for copilot-specific workflows)
+- `!Ac-name` or `!cA-name` - Both files (for complete setups)
 - `!-name` - User prompt to choose file type(s)
 
 **Profile Storage:** All profile directories are stored as `!-name` format regardless of the command prefix used.
 
 **Auto-Creation:** If a profile doesn't exist, it will be created automatically:
 
-- `!@-` and `!C-` profiles: Creates the specified file type
-- `!@C-` and `!C@-` profiles: Creates both files
+- `!A-` and `!c-` profiles: Creates the specified file type
+- `!Ac-` and `!cA-` profiles: Creates both files
 - `!-` profiles: Prompts you to choose which file(s) to create
 
 **Content Copying:** New profiles intelligently copy content from root:
@@ -195,11 +195,11 @@ Creates workspace using instructions from the `!-snt4.5` profile directory.
 **Profile Copying:** Create new profiles from existing ones:
 
 ```bash
-agmst /my-project !@-new=!-existing
+agmst /my-project !A-new=!-existing
 ```
 
 
-This creates `!@-new` by copying all instruction files from `!-existing`.
+This creates `!A-new` by copying all instruction files from `!-existing`.
 
 ### Replace Instructions in Current Workspace
 
@@ -272,19 +272,19 @@ agmst c/react-frontend
 agmst /react-dashboard !-snt4.5
 
 # Create AGENTS.md-only profile for an MCP server
-agmst /mcp-filesystem !@-mcp-server
+agmst /mcp-filesystem !A-mcp-server
 
 # Create copilot-only profile for frontend work
-agmst /ui-components !C-react-patterns
+agmst /ui-components !c-react-patterns
 
 # Create profile with both files
-agmst /full-stack-app !@C-complete
+agmst /full-stack-app !Ac-complete
 
 # Create workspace with ! in name (requires / prefix)
 agmst '/!important-project'
 
 # Create new profile by copying an existing one
-agmst !@-new-agent=!-base-template
+agmst !A-new-agent=!-base-template
 
 # Replace instructions in current workspace with GPT-5 profile
 agmst !-gpt5

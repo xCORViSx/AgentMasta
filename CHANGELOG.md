@@ -5,6 +5,17 @@ All notable changes to the AgentMasta project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Profile Prefix Nomenclature**: Updated profile prefixes to match workspace type identifiers
+  - `!@-` → `!A-` (AGENTS.md only profiles)
+  - `!C-` → `!c-` (copilot-instructions.md only profiles)
+  - `!@C-`/`!C@-` → `!Ac-`/`!cA-` (both files profiles)
+  - Consistent naming convention across workspace identifiers and profile prefixes
+  - All examples, help text, and validation logic updated in both bash and PowerShell versions
+
 ## [1.2.0] - 2025-10-28
 
 ### Added

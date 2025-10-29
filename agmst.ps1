@@ -90,24 +90,24 @@ INSTRUCTIONS PROFILES:
     All profile directories are stored as !-name format.
     
     Profile prefixes (for commands):
-        !@-name                Create instructions profile with AGENTS.md only
-        !C-name                Create instructions profile with copilot-instructions.md only
-        !@C-name OR !C@-name   Create instructions profile with both files
+        !A-name                Create instructions profile with AGENTS.md only
+        !c-name                Create instructions profile with copilot-instructions.md only
+        !Ac-name OR !cA-name   Create instructions profile with both files
         !-name                 Use instructions profile. If non-existent, create it and prompt user for instructions type(s)
     
     Creating profiles:
         - Profiles auto-create if they don't exist
         - Profile directories always named !-name
         - Copy from root default instructions if available
-        - Copy from another profile: !@-new=!-existing
+        - Copy from another profile: !A-new=!-existing
         - Empty file created if no source available
     
     Examples:
-        !@-snt4.5                          Create/use AGENTS.md profile
-        !C-gpt5                            Create/use copilot profile
-        !@C-full                           Create/use both files profile
+        !A-snt4.5                          Create/use AGENTS.md profile
+        !c-gpt5                            Create/use copilot profile
+        !Ac-full                           Create/use both files profile
         !-custom                           Prompt for file type
-        !@-new=!-existing                  Copy from existing profile
+        !A-new=!-existing                  Copy from existing profile
 
 CONFIGURATION:
     Workspace directory is stored in the agmst.ps1 script itself.
@@ -120,11 +120,11 @@ EXAMPLES:
     agmst /my-project                  # Creates workspace with root instructions (both files if both exist)
     agmst A/my-project                 # Creates workspace with AGENTS.md only (from root)
     agmst c/my-project                 # Creates workspace with copilot-instructions.md only (from root)
-    agmst /my-project !@-snt4.5        # Creates workspace with AGENTS.md profile
-    agmst /my-project !C-gpt5          # Creates workspace with copilot profile
-    agmst !@-new=!-existing            # Replace instructions, copying from another profile
+    agmst /my-project !A-snt4.5        # Creates workspace with AGENTS.md profile
+    agmst /my-project !c-gpt5          # Creates workspace with copilot profile
+    agmst !A-new=!-existing            # Replace instructions, copying from another profile
     agmst /!important-ws               # Creates workspace named "!important-ws" (! allowed with / prefix)
-    agmst !@-gpt5                      # Replace instructions in current workspace
+    agmst !A-gpt5                      # Replace instructions in current workspace
     agmst del /my-project              # Delete a workspace
     agmst del !-snt4.5                 # Delete an instructions profile
     agmst wsdir                        # Show workspace directory
@@ -840,7 +840,7 @@ function Delete-Profile {
     )
     
     # We normalize the profile name to !-name format
-    if ($ProfileName -match '^![@C]*-(.+)$') {
+    if ($ProfileName -match '^![Ac]*-(.+)$') {
         # Extract the name part after the prefix
         $ProfileName = $matches[1]
     } elseif ($ProfileName -match '^!-(.+)$') {
@@ -930,13 +930,13 @@ function Main {
             if ($SubCommand -match '^/') {
                 # Delete workspace (remove leading /)
                 Delete-Workspace -WorkspaceName $SubCommand.Substring(1)
-            } elseif ($SubCommand -match '^![@C]*-') {
+            } elseif ($SubCommand -match '^![Ac]*-') {
                 # Delete profile
                 Delete-Profile -ProfileName $SubCommand
             } else {
                 Write-Host "❌ Error: Invalid argument for del command: $SubCommand" -ForegroundColor Red
                 Write-Host "💡 Workspace names must start with / (e.g., agmst del /my-project)" -ForegroundColor Cyan
-                Write-Host "💡 Profile names must start with !@-, !C-, or !- (e.g., agmst del !-snt4.5)" -ForegroundColor Cyan
+                Write-Host "💡 Profile names must start with !A-, !c-, or !- (e.g., agmst del !-snt4.5)" -ForegroundColor Cyan
                 exit 1
             }
         }
@@ -950,13 +950,13 @@ function Main {
             if ($SubCommand -match '^/') {
                 # Delete workspace (remove leading /)
                 Delete-Workspace -WorkspaceName $SubCommand.Substring(1)
-            } elseif ($SubCommand -match '^![@C]*-') {
+            } elseif ($SubCommand -match '^![Ac]*-') {
                 # Delete profile
                 Delete-Profile -ProfileName $SubCommand
             } else {
                 Write-Host "❌ Error: Invalid argument for del command: $SubCommand" -ForegroundColor Red
                 Write-Host "💡 Workspace names must start with / (e.g., agmst del /my-project)" -ForegroundColor Cyan
-                Write-Host "💡 Profile names must start with !@-, !C-, or !- (e.g., agmst del !-snt4.5)" -ForegroundColor Cyan
+                Write-Host "💡 Profile names must start with !A-, !c-, or !- (e.g., agmst del !-snt4.5)" -ForegroundColor Cyan
                 exit 1
             }
         }
@@ -970,13 +970,13 @@ function Main {
             if ($SubCommand -match '^/') {
                 # Delete workspace (remove leading /)
                 Delete-Workspace -WorkspaceName $SubCommand.Substring(1)
-            } elseif ($SubCommand -match '^![@C]*-') {
+            } elseif ($SubCommand -match '^![Ac]*-') {
                 # Delete profile
                 Delete-Profile -ProfileName $SubCommand
             } else {
                 Write-Host "❌ Error: Invalid argument for del command: $SubCommand" -ForegroundColor Red
                 Write-Host "💡 Workspace names must start with / (e.g., agmst del /my-project)" -ForegroundColor Cyan
-                Write-Host "💡 Profile names must start with !@-, !C-, or !- (e.g., agmst del !-snt4.5)" -ForegroundColor Cyan
+                Write-Host "💡 Profile names must start with !A-, !c-, or !- (e.g., agmst del !-snt4.5)" -ForegroundColor Cyan
                 exit 1
             }
         }
@@ -989,12 +989,12 @@ function Main {
         }
         default {
             # We check if the command starts with profile prefixes (profile for current workspace)
-            if ($Command -match '^!@C-' -or $Command -match '^!C@-' -or $Command -match '^![@C]-') {
+            if ($Command -match '^!Ac-' -or $Command -match '^!cA-' -or $Command -match '^![Ac]-') {
                 Replace-InstructionsInCurrent -Profile $Command
             }
             # We check if command starts with A/ or c/ (typed workspace name)
             elseif ($Command -match '^A/' -or $Command -match '^c/') {
-                if ($SubCommand -match '^![@C]*-') {
+                if ($SubCommand -match '^![Ac]*-') {
                     # Create workspace with profile (type prefix ignored when profile specified)
                     $workspaceName = $Command.Substring(2)  # Remove type prefix
                     Create-Workspace -WorkspaceName $workspaceName -Profile $SubCommand
@@ -1009,7 +1009,7 @@ function Main {
                 # Remove leading / from workspace name
                 $workspaceName = $Command.Substring(1)
                 
-                if ($SubCommand -match '^![@C]*-') {
+                if ($SubCommand -match '^![Ac]*-') {
                     # Create workspace with profile
                     Create-Workspace -WorkspaceName $workspaceName -Profile $SubCommand
                 }
