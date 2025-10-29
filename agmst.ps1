@@ -637,23 +637,43 @@ function Create-Workspace {
             if ($fileType -eq "agents") {
                 Write-Host "⚠️  Warning: No AGENTS.md found in [AgentMasta] root" -ForegroundColor Yellow
                 Write-Host ""
+                
+                # Check if copilot-instructions.md exists for option 2
+                $hasCopilotAlternative = Test-Path "$AGENTMASTA_ROOT\copilot-instructions.md"
+                
                 Write-Host "Choose an option:"
                 Write-Host "  1) Create empty AGENTS.md in [AgentMasta] root"
-                Write-Host "  2) Use c/ for copilot-instructions.md instead"
-                Write-Host "  3) Continue without instructions file"
-                Write-Host "  C) Cancel"
-                $choice = Read-Host "Choose (1/2/3/C)"
+                if ($hasCopilotAlternative) {
+                    Write-Host "  2) Use copilot-instructions.md instead"
+                    Write-Host "  3) Continue without instructions file"
+                    Write-Host "  C) Cancel"
+                    $choice = Read-Host "Choose (1/2/3/C)"
+                } else {
+                    Write-Host "  2) Continue without instructions file"
+                    Write-Host "  C) Cancel"
+                    $choice = Read-Host "Choose (1/2/C)"
+                }
+                
                 switch ($choice) {
                     "1" {
                         New-Item -Path "$AGENTMASTA_ROOT\AGENTS.md" -ItemType File -Force | Out-Null
                         Write-Host "✅ Created empty AGENTS.md in [AgentMasta] root" -ForegroundColor Green
                     }
                     "2" {
-                        Write-Host "❌ Cancelled - Use: agmst c/$WorkspaceName" -ForegroundColor Red
-                        exit 1
+                        if ($hasCopilotAlternative) {
+                            Write-Host "✅ Switching to copilot-instructions.md" -ForegroundColor Green
+                            $fileType = "copilot"
+                        } else {
+                            Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
+                        }
                     }
                     "3" {
-                        Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
+                        if ($hasCopilotAlternative) {
+                            Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
+                        } else {
+                            Write-Host "❌ Invalid choice. Cancelled" -ForegroundColor Red
+                            exit 1
+                        }
                     }
                     { $_ -eq "C" -or $_ -eq "c" } {
                         Write-Host "❌ Cancelled" -ForegroundColor Red
@@ -667,23 +687,43 @@ function Create-Workspace {
             } elseif ($fileType -eq "copilot") {
                 Write-Host "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root" -ForegroundColor Yellow
                 Write-Host ""
+                
+                # Check if AGENTS.md exists for option 2
+                $hasAgentsAlternative = Test-Path "$AGENTMASTA_ROOT\AGENTS.md"
+                
                 Write-Host "Choose an option:"
                 Write-Host "  1) Create empty copilot-instructions.md in [AgentMasta] root"
-                Write-Host "  2) Use A/ for AGENTS.md instead"
-                Write-Host "  3) Continue without instructions file"
-                Write-Host "  C) Cancel"
-                $choice = Read-Host "Choose (1/2/3/C)"
+                if ($hasAgentsAlternative) {
+                    Write-Host "  2) Use AGENTS.md instead"
+                    Write-Host "  3) Continue without instructions file"
+                    Write-Host "  C) Cancel"
+                    $choice = Read-Host "Choose (1/2/3/C)"
+                } else {
+                    Write-Host "  2) Continue without instructions file"
+                    Write-Host "  C) Cancel"
+                    $choice = Read-Host "Choose (1/2/C)"
+                }
+                
                 switch ($choice) {
                     "1" {
                         New-Item -Path "$AGENTMASTA_ROOT\copilot-instructions.md" -ItemType File -Force | Out-Null
                         Write-Host "✅ Created empty copilot-instructions.md in [AgentMasta] root" -ForegroundColor Green
                     }
                     "2" {
-                        Write-Host "❌ Cancelled - Use: agmst A/$WorkspaceName" -ForegroundColor Red
-                        exit 1
+                        if ($hasAgentsAlternative) {
+                            Write-Host "✅ Switching to AGENTS.md" -ForegroundColor Green
+                            $fileType = "agents"
+                        } else {
+                            Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
+                        }
                     }
                     "3" {
-                        Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
+                        if ($hasAgentsAlternative) {
+                            Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
+                        } else {
+                            Write-Host "❌ Invalid choice. Cancelled" -ForegroundColor Red
+                            exit 1
+                        }
                     }
                     { $_ -eq "C" -or $_ -eq "c" } {
                         Write-Host "❌ Cancelled" -ForegroundColor Red

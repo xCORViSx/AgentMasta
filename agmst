@@ -609,23 +609,44 @@ create_workspace() {
 			if [ "$file_type" = "agents" ]; then
 				echo "⚠️  Warning: No AGENTS.md found in [AgentMasta] root"
 				echo ""
+				
+				# Check if copilot-instructions.md exists for option 2
+				local has_copilot_alternative=false
+				[ -f "${AGENTMASTA_ROOT}/copilot-instructions.md" ] && has_copilot_alternative=true
+				
 				echo "Choose an option:"
 				echo "  1) Create empty AGENTS.md in [AgentMasta] root"
-				echo "  2) Use c/ for copilot-instructions.md instead"
-				echo "  3) Continue without instructions file"
-				echo "  C) Cancel"
-				read -p "Choose (1/2/3/C): " choice
+				if $has_copilot_alternative; then
+					echo "  2) Use copilot-instructions.md instead"
+					echo "  3) Continue without instructions file"
+					echo "  C) Cancel"
+					read -p "Choose (1/2/3/C): " choice
+				else
+					echo "  2) Continue without instructions file"
+					echo "  C) Cancel"
+					read -p "Choose (1/2/C): " choice
+				fi
+				
 				case "$choice" in
 					1)
 						touch "${AGENTMASTA_ROOT}/AGENTS.md"
 						echo "✅ Created empty AGENTS.md in [AgentMasta] root"
 						;;
 					2)
-						echo "❌ Cancelled - Use: agmst c/${workspace_name}"
-						exit 1
+						if $has_copilot_alternative; then
+							echo "✅ Switching to copilot-instructions.md"
+							file_type="copilot"
+						else
+							echo "⚠️  Continuing without instructions file..."
+						fi
 						;;
 					3)
-						echo "⚠️  Continuing without instructions file..."
+						if $has_copilot_alternative; then
+							echo "⚠️  Continuing without instructions file..."
+						else
+							echo "❌ Invalid choice. Cancelled"
+							exit 1
+						fi
 						;;
 					[Cc])
 						echo "❌ Cancelled"
@@ -639,23 +660,44 @@ create_workspace() {
 			elif [ "$file_type" = "copilot" ]; then
 				echo "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root"
 				echo ""
+				
+				# Check if AGENTS.md exists for option 2
+				local has_agents_alternative=false
+				[ -f "${AGENTMASTA_ROOT}/AGENTS.md" ] && has_agents_alternative=true
+				
 				echo "Choose an option:"
 				echo "  1) Create empty copilot-instructions.md in [AgentMasta] root"
-				echo "  2) Use A/ for AGENTS.md instead"
-				echo "  3) Continue without instructions file"
-				echo "  C) Cancel"
-				read -p "Choose (1/2/3/C): " choice
+				if $has_agents_alternative; then
+					echo "  2) Use AGENTS.md instead"
+					echo "  3) Continue without instructions file"
+					echo "  C) Cancel"
+					read -p "Choose (1/2/3/C): " choice
+				else
+					echo "  2) Continue without instructions file"
+					echo "  C) Cancel"
+					read -p "Choose (1/2/C): " choice
+				fi
+				
 				case "$choice" in
 					1)
 						touch "${AGENTMASTA_ROOT}/copilot-instructions.md"
 						echo "✅ Created empty copilot-instructions.md in [AgentMasta] root"
 						;;
 					2)
-						echo "❌ Cancelled - Use: agmst A/${workspace_name}"
-						exit 1
+						if $has_agents_alternative; then
+							echo "✅ Switching to AGENTS.md"
+							file_type="agents"
+						else
+							echo "⚠️  Continuing without instructions file..."
+						fi
 						;;
 					3)
-						echo "⚠️  Continuing without instructions file..."
+						if $has_agents_alternative; then
+							echo "⚠️  Continuing without instructions file..."
+						else
+							echo "❌ Invalid choice. Cancelled"
+							exit 1
+						fi
 						;;
 					[Cc])
 						echo "❌ Cancelled"
