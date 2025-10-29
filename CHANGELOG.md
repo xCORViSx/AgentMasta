@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-10-29
+
 ### Added
 
 - **Profile Types Display**: Added `agmst proftypes` command
@@ -16,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Available in both bash and PowerShell versions
 
 ### Changed
+
+- **Profile Creation UX**: Improved profile creation flow
+  - Now asks "Would you also like to replace instructions in current workspace? (y/N)" after creating profile
+  - Changed from automatic replacement to explicit yes/no confirmation
+  - Better user control over profile creation vs. instruction replacement workflow
+
+### Fixed
 
 - **Profile Prefix Nomenclature**: Updated profile prefixes to match workspace type identifiers
   - `!@-` → `!A-` (AGENTS.md only profiles)
@@ -165,6 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .gitignore configuration
 - GitHub-ready repository structure
 
+[1.3.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.3.0
 [1.2.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.2.0
 [1.1.0]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.1.0
 [1.0.1]: https://github.com/xCORViSx/AgentMasta/releases/tag/v1.0.1

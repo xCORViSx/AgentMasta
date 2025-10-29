@@ -185,9 +185,24 @@ This document outlines the development phases and current status of the AgentMas
 
 ---
 
-## Phase 10: Future Enhancements 📋 PLANNED
+## Phase 10: Profile Management Enhancements ✅ COMPLETE
 
-**Status:** Not started (post-v1.2.0)
+**Status:** Released (post-v1.2.0)
+
+### Enhanced Profile Management
+
+- ✅ Profile types display command (`agmst proftypes`)
+- ✅ ls-like display showing all profiles with type indicators
+- ✅ Clean aligned output with 16-character spacing
+- ✅ Legend showing A (AGENTS.md), c (copilot), Ac (both)
+- ✅ Profile creation UX improved with yes/no confirmation
+- ✅ Cross-platform implementation (bash and PowerShell)
+
+---
+
+## Phase 11: Future Enhancements 📋 PLANNED
+
+**Status:** Not started
 
 ### Proposed Features
 
@@ -206,13 +221,14 @@ This document outlines the development phases and current status of the AgentMas
 
 **Project Status:** ✅ Ready for Release
 
-The AgentMasta CLI tool is feature-complete for v1.2.0 with comprehensive workspace and profile management. All core functionality has been implemented and tested:
+The AgentMasta CLI tool is feature-complete with comprehensive workspace and profile management. All core functionality has been implemented and tested:
 
 - ✅ Cross-platform support (macOS, Linux, Windows)
 - ✅ Embedded configuration system (zero external files)
 - ✅ Instructions profiles for different AI agents
 - ✅ / prefix syntax for workspace names
 - ✅ Type identifiers (A/ and c/) for selective root instructions
+- ✅ Profile types display command (proftypes)
 - ✅ wsdir command for workspace directory management
 - ✅ Deletion commands for workspaces and profiles
 - ✅ Enhanced UX with warnings and confirmation prompts
@@ -220,12 +236,13 @@ The AgentMasta CLI tool is feature-complete for v1.2.0 with comprehensive worksp
 - ✅ Installation scripts for all platforms
 - ✅ VS Code integration
 
-**Next Action:** User should test the new type identifier feature.
+**Next Action:** Consider tagging a new release version with the proftypes feature.
 
 ---
 
 ## Version History
 
+- **v1.3.0** (October 29, 2025) - Added proftypes command and improved profile creation UX
 - **v1.2.0** (October 28, 2025) - Added workspace type identifiers (A/ and c/)
 - **v1.1.0** (October 28, 2025) - Added deletion commands and enhanced UX
 - **v1.0.1** (October 28, 2025) - Fixed repository path resolution
