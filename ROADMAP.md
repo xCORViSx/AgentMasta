@@ -175,8 +175,8 @@ This document outlines the development phases and current status of the AgentMas
 
 ### Type Identifier Features
 
-- ✅ `@/` workspace prefix to create workspace with AGENTS.md only (from root)
-- ✅ `C/` workspace prefix to create workspace with copilot-instructions.md only (from root)
+- ✅ `A/` workspace prefix to create workspace with AGENTS.md only (from root)
+- ✅ `c/` workspace prefix to create workspace with copilot-instructions.md only (from root)
 - ✅ Type filtering in `create_instruction_symlinks` function
 - ✅ Smart file validation based on requested type
 - ✅ Cross-platform implementation (bash and PowerShell)
@@ -212,7 +212,7 @@ The AgentMasta CLI tool is feature-complete for v1.2.0 with comprehensive worksp
 - ✅ Embedded configuration system (zero external files)
 - ✅ Instructions profiles for different AI agents
 - ✅ / prefix syntax for workspace names
-- ✅ Type identifiers (@/ and C/) for selective root instructions
+- ✅ Type identifiers (A/ and c/) for selective root instructions
 - ✅ wsdir command for workspace directory management
 - ✅ Deletion commands for workspaces and profiles
 - ✅ Enhanced UX with warnings and confirmation prompts
@@ -226,7 +226,7 @@ The AgentMasta CLI tool is feature-complete for v1.2.0 with comprehensive worksp
 
 ## Version History
 
-- **v1.2.0** (October 28, 2025) - Added workspace type identifiers (@/ and C/)
+- **v1.2.0** (October 28, 2025) - Added workspace type identifiers (A/ and c/)
 - **v1.1.0** (October 28, 2025) - Added deletion commands and enhanced UX
-- **v1.0.1** (January 28, 2025) - Fixed repository path resolution
-- **v1.0.0** (January 28, 2025) - Initial release with full cross-platform support
+- **v1.0.1** (October 28, 2025) - Fixed repository path resolution
+- **v1.0.0** (October 28, 2025) - Initial release with full cross-platform support

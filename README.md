@@ -154,11 +154,11 @@ This will:
    - For copilot-instructions.md: creates `.github/` and symlinks inside it
 3. Open the workspace in VS Code
 
-**Type Identifiers:** Use `@/` or `C/` prefixes to choose which root instructions file to use:
+**Type Identifiers:** Use `A/` or `c/` prefixes to choose which root instructions file to use:
 
 ```bash
-agmst @/my-project    # Creates workspace with AGENTS.md only (from root)
-agmst C/my-project    # Creates workspace with copilot-instructions.md only (from root)
+agmst A/my-project    # Creates workspace with AGENTS.md only (from root)
+agmst c/my-project    # Creates workspace with copilot-instructions.md only (from root)
 ```
 
 This is useful when you have both AGENTS.md and copilot-instructions.md in your [AgentMasta] root directory.
@@ -263,10 +263,10 @@ agmst -v
 agmst /python-api
 
 # Create with type identifier (AGENTS.md only from root)
-agmst @/python-api
+agmst A/python-api
 
 # Create with type identifier (copilot-instructions.md only from root)
-agmst C/react-frontend
+agmst c/react-frontend
 
 # Create a React project workspace with Sonnet 4.5 profile
 agmst /react-dashboard !-snt4.5

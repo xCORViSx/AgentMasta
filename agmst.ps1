@@ -58,8 +58,8 @@ AgentMasta - Workspace Management Tool for Vibecoders [v$VERSION]
 
 USAGE:
     agmst /workspace-name                   Create a new workspace with root instructions
-    agmst @/workspace-name                  Create workspace with AGENTS.md only (from root)
-    agmst C/workspace-name                  Create workspace with copilot-instructions.md only (from root)
+    agmst A/workspace-name                  Create workspace with AGENTS.md only (from root)
+    agmst c/workspace-name                  Create workspace with copilot-instructions.md only (from root)
     agmst /workspace-name !-profilename     Create a new workspace with instructions profile
     agmst !-profilename                     Replace instructions in current workspace with profile
     agmst del /workspace-name               Delete a workspace
@@ -76,7 +76,7 @@ DESCRIPTION:
     and opens it in VS Code. Use / prefix for workspace names to distinguish
     them from profile commands.
     
-    Type identifiers (@/ or C/) let you choose which root instructions file
+    Type identifiers (A/ or c/) let you choose which root instructions file
     to use when creating workspaces. This is useful when you have both AGENTS.md
     and copilot-instructions.md in your [AgentMasta] root.
     
@@ -118,8 +118,8 @@ CONFIGURATION:
 
 EXAMPLES:
     agmst /my-project                  # Creates workspace with root instructions (both files if both exist)
-    agmst @/my-project                 # Creates workspace with AGENTS.md only (from root)
-    agmst C/my-project                 # Creates workspace with copilot-instructions.md only (from root)
+    agmst A/my-project                 # Creates workspace with AGENTS.md only (from root)
+    agmst c/my-project                 # Creates workspace with copilot-instructions.md only (from root)
     agmst /my-project !@-snt4.5        # Creates workspace with AGENTS.md profile
     agmst /my-project !C-gpt5          # Creates workspace with copilot profile
     agmst !@-new=!-existing            # Replace instructions, copying from another profile
@@ -570,7 +570,7 @@ function Replace-InstructionsInCurrent {
 }
 
 # This function creates a new workspace with optional profile and optional type filter
-# Type prefix @/ creates AGENTS.md only, C/ creates copilot-instructions.md only
+# Type prefix A/ creates AGENTS.md only, c/ creates copilot-instructions.md only
 function Create-Workspace {
     param(
         [string]$WorkspaceName,
@@ -587,13 +587,13 @@ function Create-Workspace {
     # We set the default file type
     $fileType = "both"
     
-    # We check if workspace_name has a type prefix (@/ or C/)
-    if ($WorkspaceName -match "^@/(.+)$") {
+    # We check if workspace_name has a type prefix (A/ or c/)
+    if ($WorkspaceName -match "^A/(.+)$") {
         $fileType = "agents"
-        $WorkspaceName = $matches[1]  # Remove @/ prefix
-    } elseif ($WorkspaceName -match "^C/(.+)$") {
+        $WorkspaceName = $matches[1]  # Remove A/ prefix
+    } elseif ($WorkspaceName -match "^c/(.+)$") {
         $fileType = "copilot"
-        $WorkspaceName = $matches[1]  # Remove C/ prefix
+        $WorkspaceName = $matches[1]  # Remove c/ prefix
     }
     
     # We construct the full path to the new workspace
@@ -854,8 +854,8 @@ function Main {
             if ($Command -match '^!@C-' -or $Command -match '^!C@-' -or $Command -match '^![@C]-') {
                 Replace-InstructionsInCurrent -Profile $Command
             }
-            # We check if command starts with @/ or C/ (typed workspace name)
-            elseif ($Command -match '^@/' -or $Command -match '^C/') {
+            # We check if command starts with A/ or c/ (typed workspace name)
+            elseif ($Command -match '^A/' -or $Command -match '^c/') {
                 if ($SubCommand -match '^![@C]*-') {
                     # Create workspace with profile (type prefix ignored when profile specified)
                     $workspaceName = $Command.Substring(2)  # Remove type prefix

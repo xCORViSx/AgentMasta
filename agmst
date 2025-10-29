@@ -74,8 +74,8 @@ AgentMasta - Workspace Management Tool for Vibecoders [v${VERSION}]
 
 USAGE:
     agmst /workspace-name                   Create a new workspace with root instructions
-    agmst @/workspace-name                  Create workspace with AGENTS.md only (from root)
-    agmst C/workspace-name                  Create workspace with copilot-instructions.md only (from root)
+    agmst A/workspace-name                  Create workspace with AGENTS.md only (from root)
+    agmst c/workspace-name                  Create workspace with copilot-instructions.md only (from root)
     agmst /workspace-name !-profilename     Create a new workspace with instructions profile
     agmst !-profilename                     Replace instructions in current workspace with profile
     agmst del /workspace-name               Delete a workspace
@@ -92,7 +92,7 @@ DESCRIPTION:
     and opens it in VS Code. Use / prefix for workspace names to distinguish
     them from profile commands.
     
-    Type identifiers (@/ or C/) let you choose which root instructions file
+    Type identifiers (A/ or c/) let you choose which root instructions file
     to use when creating workspaces. This is useful when you have both AGENTS.md
     and copilot-instructions.md in your [AgentMasta] root.
     
@@ -133,8 +133,8 @@ CONFIGURATION:
 
 EXAMPLES:${RESET}
     agmst /my-project                  # Creates workspace with root instructions (both files if both exist)
-    agmst @/my-project                 # Creates workspace with AGENTS.md only (from root)
-    agmst C/my-project                 # Creates workspace with copilot-instructions.md only (from root)
+    agmst A/my-project                 # Creates workspace with AGENTS.md only (from root)
+    agmst c/my-project                 # Creates workspace with copilot-instructions.md only (from root)
     agmst /my-project !@-snt4.5        # Creates workspace with AGENTS.md profile
     agmst /my-project !C-gpt5          # Creates workspace with copilot profile
     agmst !@-new=!-existing            # Replace instructions, copying from another profile
@@ -551,19 +551,19 @@ replace_instructions_in_current() {
 }
 
 # This function creates a new workspace with optional profile and optional type filter
-# Type prefix @/ creates AGENTS.md only, C/ creates copilot-instructions.md only
+# Type prefix A/ creates AGENTS.md only, c/ creates copilot-instructions.md only
 create_workspace() {
 	local workspace_name="$1"
 	local profile="$2"
 	local file_type="both"  # Default to both files
 	
-	# We check if workspace_name has a type prefix (@/ or C/)
-	if [[ "$workspace_name" =~ ^@/ ]]; then
+	# We check if workspace_name has a type prefix (A/ or c/)
+	if [[ "$workspace_name" =~ ^A/ ]]; then
 		file_type="agents"
-		workspace_name="${workspace_name#@/}"  # Remove @/ prefix
-	elif [[ "$workspace_name" =~ ^C/ ]]; then
+		workspace_name="${workspace_name#A/}"  # Remove A/ prefix
+	elif [[ "$workspace_name" =~ ^c/ ]]; then
 		file_type="copilot"
-		workspace_name="${workspace_name#C/}"  # Remove C/ prefix
+		workspace_name="${workspace_name#c/}"  # Remove c/ prefix
 	fi
 	
 	# We construct the full path to the new workspace
@@ -791,9 +791,9 @@ main() {
 			# We treat arguments starting with profile prefixes as profile for current workspace
 			replace_instructions_in_current "$command"
 			;;
-		@/*|C/*)
-			# We treat arguments starting with @/ or C/ as typed workspace names
-			# @/ creates AGENTS.md only, C/ creates copilot-instructions.md only
+		A/*|c/*)
+			# We treat arguments starting with A/ or c/ as typed workspace names
+			# A/ creates AGENTS.md only, c/ creates copilot-instructions.md only
 			if [[ "$second_arg" =~ ^![@C]*- ]]; then
 				# Create workspace with profile (type prefix ignored when profile specified)
 				local workspace_name="${command#*/}"  # Remove type prefix

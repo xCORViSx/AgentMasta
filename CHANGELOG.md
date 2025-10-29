@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Workspace Type Identifiers**: Added `@/` and `C/` prefixes for selective root instructions
-  - `agmst @/workspace-name` creates workspace with AGENTS.md only (from root)
-  - `agmst C/workspace-name` creates workspace with copilot-instructions.md only (from root)
+- **Workspace Type Identifiers**: Added `A/` and `c/` prefixes for selective root instructions
+  - `agmst A/workspace-name` creates workspace with AGENTS.md only (from root)
+  - `agmst c/workspace-name` creates workspace with copilot-instructions.md only (from root)
   - Useful when you have both instructions files in [AgentMasta] root
   - Type filtering in `create_instruction_symlinks` function with `$fileType` parameter
   - Smart file validation that checks for requested type before proceeding
@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `create_instruction_symlinks` function now accepts optional `$fileType` parameter ("agents", "copilot", or "both")
 - `create_workspace` function extracts type prefix from workspace name and filters symlinks accordingly
-- Main routing updated to handle `@/*` and `C/*` patterns
+- Main routing updated to handle `A/*` and `c/*` patterns
 - File validation now checks for specifically requested instruction type rather than any file
 
 ## [1.1.0] - 2025-10-28
