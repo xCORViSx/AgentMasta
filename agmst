@@ -606,8 +606,16 @@ create_workspace() {
 		fi
 		
 		if ! $has_requested_file; then
-			echo "⚠️  Warning: No instructions files found in [AgentMasta] root"
-			echo "💡 Add AGENTS.md or copilot-instructions.md to [AgentMasta] directory"
+			if [ "$file_type" = "agents" ]; then
+				echo "⚠️  Warning: No AGENTS.md found in [AgentMasta] root"
+				echo "💡 Add AGENTS.md to [AgentMasta] directory or use c/ for copilot-instructions.md"
+			elif [ "$file_type" = "copilot" ]; then
+				echo "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root"
+				echo "💡 Add copilot-instructions.md to [AgentMasta] directory or use A/ for AGENTS.md"
+			else
+				echo "⚠️  Warning: No instructions files found in [AgentMasta] root"
+				echo "💡 Add AGENTS.md or copilot-instructions.md to [AgentMasta] directory"
+			fi
 			read -p "Continue anyway? (y/N) " -n 1 -r
 			echo
 			if [[ ! $REPLY =~ ^[Yy]$ ]]; then

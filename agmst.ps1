@@ -634,8 +634,16 @@ function Create-Workspace {
         }
         
         if (-not $hasRequestedFile) {
-            Write-Host "⚠️  Warning: No instructions files found in [AgentMasta] root" -ForegroundColor Yellow
-            Write-Host "💡 Add AGENTS.md or copilot-instructions.md to [AgentMasta] directory" -ForegroundColor Cyan
+            if ($fileType -eq "agents") {
+                Write-Host "⚠️  Warning: No AGENTS.md found in [AgentMasta] root" -ForegroundColor Yellow
+                Write-Host "💡 Add AGENTS.md to [AgentMasta] directory or use c/ for copilot-instructions.md" -ForegroundColor Cyan
+            } elseif ($fileType -eq "copilot") {
+                Write-Host "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root" -ForegroundColor Yellow
+                Write-Host "💡 Add copilot-instructions.md to [AgentMasta] directory or use A/ for AGENTS.md" -ForegroundColor Cyan
+            } else {
+                Write-Host "⚠️  Warning: No instructions files found in [AgentMasta] root" -ForegroundColor Yellow
+                Write-Host "💡 Add AGENTS.md or copilot-instructions.md to [AgentMasta] directory" -ForegroundColor Cyan
+            }
             $confirmation = Read-Host "Continue anyway? (y/N)"
             if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
                 Write-Host "❌ Cancelled" -ForegroundColor Red

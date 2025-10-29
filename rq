@@ -1,0 +1,8 @@
+cd /Users/macbookpro/Documents/DEVshi && rm -rf test-copilot-only && agmst c/test-copilot-only
+⚠️  Warning: No instructions files found in [AgentMasta] root
+💡 Add AGENTS.md or copilot-instructions.md to [AgentMasta] directory
+Continue anyway? (y/N) y <!--why ask when cmd that specified type?-->
+📁 Creating workspace directory: /Users/macbookpro/Documents/DEVshi/test-copilot-only
+🚀 Opening workspace in VS Code...
+✅ Workspace 'test-copilot-only' created and opened successfully!
+<!-- then it didnt even create any instructions-->
