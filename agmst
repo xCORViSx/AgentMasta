@@ -608,19 +608,100 @@ create_workspace() {
 		if ! $has_requested_file; then
 			if [ "$file_type" = "agents" ]; then
 				echo "⚠️  Warning: No AGENTS.md found in [AgentMasta] root"
-				echo "💡 Add AGENTS.md to [AgentMasta] directory or use c/ for copilot-instructions.md"
+				echo ""
+				echo "Choose an option:"
+				echo "  1) Create empty AGENTS.md in [AgentMasta] root"
+				echo "  2) Use c/ for copilot-instructions.md instead"
+				echo "  3) Continue without instructions file"
+				echo "  C) Cancel"
+				read -p "Choose (1/2/3/C): " choice
+				case "$choice" in
+					1)
+						touch "${AGENTMASTA_ROOT}/AGENTS.md"
+						echo "✅ Created empty AGENTS.md in [AgentMasta] root"
+						;;
+					2)
+						echo "❌ Cancelled - Use: agmst c/${workspace_name}"
+						exit 1
+						;;
+					3)
+						echo "⚠️  Continuing without instructions file..."
+						;;
+					[Cc])
+						echo "❌ Cancelled"
+						exit 1
+						;;
+					*)
+						echo "❌ Invalid choice. Cancelled"
+						exit 1
+						;;
+				esac
 			elif [ "$file_type" = "copilot" ]; then
 				echo "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root"
-				echo "💡 Add copilot-instructions.md to [AgentMasta] directory or use A/ for AGENTS.md"
+				echo ""
+				echo "Choose an option:"
+				echo "  1) Create empty copilot-instructions.md in [AgentMasta] root"
+				echo "  2) Use A/ for AGENTS.md instead"
+				echo "  3) Continue without instructions file"
+				echo "  C) Cancel"
+				read -p "Choose (1/2/3/C): " choice
+				case "$choice" in
+					1)
+						touch "${AGENTMASTA_ROOT}/copilot-instructions.md"
+						echo "✅ Created empty copilot-instructions.md in [AgentMasta] root"
+						;;
+					2)
+						echo "❌ Cancelled - Use: agmst A/${workspace_name}"
+						exit 1
+						;;
+					3)
+						echo "⚠️  Continuing without instructions file..."
+						;;
+					[Cc])
+						echo "❌ Cancelled"
+						exit 1
+						;;
+					*)
+						echo "❌ Invalid choice. Cancelled"
+						exit 1
+						;;
+				esac
 			else
 				echo "⚠️  Warning: No instructions files found in [AgentMasta] root"
-				echo "💡 Add AGENTS.md or copilot-instructions.md to [AgentMasta] directory"
-			fi
-			read -p "Continue anyway? (y/N) " -n 1 -r
-			echo
-			if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-				echo "❌ Cancelled"
-				exit 1
+				echo ""
+				echo "Choose an option:"
+				echo "  1) Create empty AGENTS.md"
+				echo "  2) Create empty copilot-instructions.md"
+				echo "  3) Create both files"
+				echo "  4) Continue without instructions files"
+				echo "  C) Cancel"
+				read -p "Choose (1/2/3/4/C): " choice
+				case "$choice" in
+					1)
+						touch "${AGENTMASTA_ROOT}/AGENTS.md"
+						echo "✅ Created empty AGENTS.md in [AgentMasta] root"
+						;;
+					2)
+						touch "${AGENTMASTA_ROOT}/copilot-instructions.md"
+						echo "✅ Created empty copilot-instructions.md in [AgentMasta] root"
+						;;
+					3)
+						touch "${AGENTMASTA_ROOT}/AGENTS.md"
+						touch "${AGENTMASTA_ROOT}/copilot-instructions.md"
+						echo "✅ Created empty AGENTS.md and copilot-instructions.md in [AgentMasta] root"
+						;;
+					4)
+						echo "⚠️  Continuing without instructions files..."
+						;;
+					[Cc])
+						echo "❌ Cancelled"
+						exit 1
+						;;
+					*)
+						echo "❌ Invalid choice. Cancelled"
+						exit 1
+						;;
+				esac
 			fi
 		fi
 	fi
