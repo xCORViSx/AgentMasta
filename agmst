@@ -607,17 +607,21 @@ create_workspace() {
 		
 		if ! $has_requested_file; then
 			if [ "$file_type" = "agents" ]; then
-				echo "⚠️  Warning: No AGENTS.md found in [AgentMasta] root"
-				echo ""
-				
 				# Check if copilot-instructions.md exists for option 2
 				local has_copilot_alternative=false
 				[ -f "${AGENTMASTA_ROOT}/copilot-instructions.md" ] && has_copilot_alternative=true
 				
+				if $has_copilot_alternative; then
+					echo "⚠️  Warning: No AGENTS.md found in [AgentMasta] root (but copilot-instructions.md exists)"
+				else
+					echo "⚠️  Warning: No AGENTS.md found in [AgentMasta] root (or alternative copilot-instructions.md)"
+				fi
+				echo ""
+				
 				echo "Choose an option:"
 				echo "  1) Create empty AGENTS.md in [AgentMasta] root"
 				if $has_copilot_alternative; then
-					echo "  2) Use copilot-instructions.md instead"
+					echo "  2) Copy contents from copilot-instructions.md to new AGENTS.md"
 					echo "  3) Continue without instructions file"
 					echo "  C) Cancel"
 					read -p "Choose (1/2/3/C): " choice
@@ -634,8 +638,8 @@ create_workspace() {
 						;;
 					2)
 						if $has_copilot_alternative; then
-							echo "✅ Switching to copilot-instructions.md"
-							file_type="copilot"
+							cp "${AGENTMASTA_ROOT}/copilot-instructions.md" "${AGENTMASTA_ROOT}/AGENTS.md"
+							echo "✅ Created AGENTS.md with contents from copilot-instructions.md"
 						else
 							echo "⚠️  Continuing without instructions file..."
 						fi
@@ -658,17 +662,21 @@ create_workspace() {
 						;;
 				esac
 			elif [ "$file_type" = "copilot" ]; then
-				echo "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root"
-				echo ""
-				
 				# Check if AGENTS.md exists for option 2
 				local has_agents_alternative=false
 				[ -f "${AGENTMASTA_ROOT}/AGENTS.md" ] && has_agents_alternative=true
 				
+				if $has_agents_alternative; then
+					echo "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root (but AGENTS.md exists)"
+				else
+					echo "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root (or alternative AGENTS.md)"
+				fi
+				echo ""
+				
 				echo "Choose an option:"
 				echo "  1) Create empty copilot-instructions.md in [AgentMasta] root"
 				if $has_agents_alternative; then
-					echo "  2) Use AGENTS.md instead"
+					echo "  2) Copy contents from AGENTS.md to new copilot-instructions.md"
 					echo "  3) Continue without instructions file"
 					echo "  C) Cancel"
 					read -p "Choose (1/2/3/C): " choice
@@ -685,8 +693,8 @@ create_workspace() {
 						;;
 					2)
 						if $has_agents_alternative; then
-							echo "✅ Switching to AGENTS.md"
-							file_type="agents"
+							cp "${AGENTMASTA_ROOT}/AGENTS.md" "${AGENTMASTA_ROOT}/copilot-instructions.md"
+							echo "✅ Created copilot-instructions.md with contents from AGENTS.md"
 						else
 							echo "⚠️  Continuing without instructions file..."
 						fi

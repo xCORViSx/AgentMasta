@@ -635,16 +635,20 @@ function Create-Workspace {
         
         if (-not $hasRequestedFile) {
             if ($fileType -eq "agents") {
-                Write-Host "⚠️  Warning: No AGENTS.md found in [AgentMasta] root" -ForegroundColor Yellow
-                Write-Host ""
-                
                 # Check if copilot-instructions.md exists for option 2
                 $hasCopilotAlternative = Test-Path "$AGENTMASTA_ROOT\copilot-instructions.md"
+                
+                if ($hasCopilotAlternative) {
+                    Write-Host "⚠️  Warning: No AGENTS.md found in [AgentMasta] root (but copilot-instructions.md exists)" -ForegroundColor Yellow
+                } else {
+                    Write-Host "⚠️  Warning: No AGENTS.md found in [AgentMasta] root (or alternative copilot-instructions.md)" -ForegroundColor Yellow
+                }
+                Write-Host ""
                 
                 Write-Host "Choose an option:"
                 Write-Host "  1) Create empty AGENTS.md in [AgentMasta] root"
                 if ($hasCopilotAlternative) {
-                    Write-Host "  2) Use copilot-instructions.md instead"
+                    Write-Host "  2) Copy contents from copilot-instructions.md to new AGENTS.md"
                     Write-Host "  3) Continue without instructions file"
                     Write-Host "  C) Cancel"
                     $choice = Read-Host "Choose (1/2/3/C)"
@@ -661,8 +665,8 @@ function Create-Workspace {
                     }
                     "2" {
                         if ($hasCopilotAlternative) {
-                            Write-Host "✅ Switching to copilot-instructions.md" -ForegroundColor Green
-                            $fileType = "copilot"
+                            Copy-Item -Path "$AGENTMASTA_ROOT\copilot-instructions.md" -Destination "$AGENTMASTA_ROOT\AGENTS.md"
+                            Write-Host "✅ Created AGENTS.md with contents from copilot-instructions.md" -ForegroundColor Green
                         } else {
                             Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
                         }
@@ -685,16 +689,20 @@ function Create-Workspace {
                     }
                 }
             } elseif ($fileType -eq "copilot") {
-                Write-Host "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root" -ForegroundColor Yellow
-                Write-Host ""
-                
                 # Check if AGENTS.md exists for option 2
                 $hasAgentsAlternative = Test-Path "$AGENTMASTA_ROOT\AGENTS.md"
+                
+                if ($hasAgentsAlternative) {
+                    Write-Host "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root (but AGENTS.md exists)" -ForegroundColor Yellow
+                } else {
+                    Write-Host "⚠️  Warning: No copilot-instructions.md found in [AgentMasta] root (or alternative AGENTS.md)" -ForegroundColor Yellow
+                }
+                Write-Host ""
                 
                 Write-Host "Choose an option:"
                 Write-Host "  1) Create empty copilot-instructions.md in [AgentMasta] root"
                 if ($hasAgentsAlternative) {
-                    Write-Host "  2) Use AGENTS.md instead"
+                    Write-Host "  2) Copy contents from AGENTS.md to new copilot-instructions.md"
                     Write-Host "  3) Continue without instructions file"
                     Write-Host "  C) Cancel"
                     $choice = Read-Host "Choose (1/2/3/C)"
@@ -711,8 +719,8 @@ function Create-Workspace {
                     }
                     "2" {
                         if ($hasAgentsAlternative) {
-                            Write-Host "✅ Switching to AGENTS.md" -ForegroundColor Green
-                            $fileType = "agents"
+                            Copy-Item -Path "$AGENTMASTA_ROOT\AGENTS.md" -Destination "$AGENTMASTA_ROOT\copilot-instructions.md"
+                            Write-Host "✅ Created copilot-instructions.md with contents from AGENTS.md" -ForegroundColor Green
                         } else {
                             Write-Host "⚠️  Continuing without instructions file..." -ForegroundColor Yellow
                         }
