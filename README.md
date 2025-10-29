@@ -192,14 +192,38 @@ Creates workspace using instructions from the `!-snt4.5` profile directory.
 - If only one root file exists: Copies its content regardless of type
 - If no root files exist: Creates empty file(s)
 
-**Profile Copying:** Create new profiles from existing ones:
+**Profile Copying:** Create new profiles from existing ones using the `=` syntax:
 
 ```bash
+# Copy entire profile (all instruction files)
 agmst /my-project !A-new=!-existing
+
+# Copy and modify for different workspace
+agmst !c-frontend=!-base-template
 ```
 
+**How it works:**
+- Creates new profile directory `!-new`
+- Copies all instruction files from `!-existing`
+- Preserves AGENTS.md and/or copilot-instructions.md from source
+- Useful for creating variations of existing setups
+- Can specify target file type (!A-, !c-, !Ac-) while copying from any source
 
-This creates `!A-new` by copying all instruction files from `!-existing`.
+**Example workflow:**
+```bash
+# 1. Create base profile with both files
+agmst !Ac-base
+
+# 2. Copy to create AGENTS.md-only variation
+agmst !A-mcp-server=!-base
+
+# 3. Copy to create copilot-only variation  
+agmst !c-frontend=!-base
+
+# 4. Use different profiles for different workspaces
+agmst /server-project !-mcp-server
+agmst /ui-project !-frontend
+```
 
 ### Replace Instructions in Current Workspace
 
@@ -280,11 +304,11 @@ agmst /ui-components !c-react-patterns
 # Create profile with both files
 agmst /full-stack-app !Ac-complete
 
-# Create workspace with ! in name (requires / prefix)
-agmst '/!important-project'
-
-# Create new profile by copying an existing one
+# Copy existing profile to create new variation
 agmst !A-new-agent=!-base-template
+
+# Use copied profile in workspace creation
+agmst /agent-workspace !-new-agent
 
 # Replace instructions in current workspace with GPT-5 profile
 agmst !-gpt5
